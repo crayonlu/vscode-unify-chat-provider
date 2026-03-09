@@ -219,6 +219,21 @@ export class OpenAIResponsesProvider implements ApiProvider {
     return randomUUID();
   }
 
+  protected getInputMessageRole(
+    role: vscode.LanguageModelChatMessageRole,
+  ): EasyInputMessage['role'] {
+    switch (role) {
+      case vscode.LanguageModelChatMessageRole.Assistant:
+        return 'assistant';
+      case vscode.LanguageModelChatMessageRole.System:
+        return 'system';
+      case vscode.LanguageModelChatMessageRole.User:
+        return 'user';
+      default:
+        throw new Error(`Unsupported message role for provider: ${role}`);
+    }
+  }
+
   private convertMessages(
     encodedModelId: string,
     messages: readonly vscode.LanguageModelChatRequestMessage[],
@@ -350,12 +365,8 @@ export class OpenAIResponsesProvider implements ApiProvider {
       return undefined;
     }
 
-    const roleStr: 'assistant' | 'system' | 'user' =
-      role === vscode.LanguageModelChatMessageRole.Assistant
-        ? 'assistant'
-        : role === vscode.LanguageModelChatMessageRole.System
-          ? 'system'
-          : 'user';
+    const roleStr: EasyInputMessage['role'] =
+      role === 'from_tool_result' ? 'user' : this.getInputMessageRole(role);
 
     if (part instanceof vscode.LanguageModelTextPart) {
       if (part.value.trim()) {
