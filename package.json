@@ -186,6 +186,11 @@
           "description": "%configuration.verbose.description%",
           "default": false
         },
+        "unifyChatProvider.modelDisplayNameTemplate": {
+          "type": "string",
+          "description": "%configuration.modelDisplayNameTemplate.description%",
+          "default": "{modelName}"
+        },
         "unifyChatProvider.storeApiKeyInSettings": {
           "type": "boolean",
           "description": "%configuration.storeApiKeyInSettings.description%",

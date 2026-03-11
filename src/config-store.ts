@@ -19,6 +19,7 @@ const CONFIG_NAMESPACE = 'unifyChatProvider';
 const DEFAULT_BALANCE_REFRESH_INTERVAL_MS = 60_000;
 const DEFAULT_BALANCE_THROTTLE_WINDOW_MS = 10_000;
 const DEFAULT_BALANCE_STATUS_BAR_ICON = '$(credit-card)';
+const DEFAULT_MODEL_DISPLAY_NAME_TEMPLATE = '{modelName}';
 const MIN_BALANCE_REFRESH_INTERVAL_MS = 1_000;
 const MIN_BALANCE_THROTTLE_WINDOW_MS = 0;
 const DEFAULT_BALANCE_WARNING_ENABLED = true;
@@ -31,6 +32,7 @@ const MIN_BALANCE_WARNING_TOKEN_THRESHOLD_MILLIONS = 0;
 const GLOBAL_ONLY_CONFIG_KEYS = [
   'endpoints',
   'verbose',
+  'modelDisplayNameTemplate',
   'storeApiKeyInSettings',
   'balanceRefreshIntervalMs',
   'balanceThrottleWindowMs',
@@ -46,6 +48,7 @@ const GLOBAL_ONLY_CONFIG_KEYS = [
  */
 export interface ExtensionConfiguration {
   endpoints: ProviderConfig[];
+  modelDisplayNameTemplate: string;
   storeApiKeyInSettings: boolean;
   balanceRefreshIntervalMs: number;
   balanceThrottleWindowMs: number;
@@ -120,6 +123,11 @@ export class ConfigStore {
   get verbose(): boolean {
     const rawVerbose = this.readGlobalUnknown('verbose');
     return typeof rawVerbose === 'boolean' ? rawVerbose : false;
+  }
+
+  get modelDisplayNameTemplate(): string {
+    const raw = this.readGlobalUnknown('modelDisplayNameTemplate');
+    return typeof raw === 'string' ? raw : DEFAULT_MODEL_DISPLAY_NAME_TEMPLATE;
   }
 
   /**
@@ -207,6 +215,7 @@ export class ConfigStore {
   get configuration(): ExtensionConfiguration {
     return {
       endpoints: this.endpoints,
+      modelDisplayNameTemplate: this.modelDisplayNameTemplate,
       storeApiKeyInSettings: this.storeApiKeyInSettings,
       balanceRefreshIntervalMs: this.balanceRefreshIntervalMs,
       balanceThrottleWindowMs: this.balanceThrottleWindowMs,

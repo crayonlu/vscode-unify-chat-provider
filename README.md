@@ -416,13 +416,14 @@ Use this feature to monitor provider balances in `Provider Settings`.
 
 <details>
 
-| Name                      | ID                         | Description                                                                   |
-| ------------------------- | -------------------------- | ----------------------------------------------------------------------------- |
-| Global Network Settings   | `networkSettings`          | Network timeout/retry settings, which only affect chat requests.              |
-| Balance Refresh Interval  | `balanceRefreshIntervalMs` | Periodic refresh interval for provider balances (milliseconds).               |
-| Balance Throttle Window   | `balanceThrottleWindowMs`  | Throttle window for post-request balance refresh (milliseconds).              |
-| Store API Key in Settings | `storeApiKeyInSettings`    | Please see [Cloud Sync Compatibility](#cloud-sync-compatibility) for details. |
-| Enable Detailed Logging   | `verbose`                  | Enables more detailed logging for troubleshooting errors.                     |
+| Name                        | ID                         | Description                                                                               |
+| --------------------------- | -------------------------- | ----------------------------------------------------------------------------------------- |
+| Global Network Settings     | `networkSettings`          | Network timeout/retry settings, which only affect chat requests.                          |
+| Model Display Name Template | `modelDisplayNameTemplate` | Template for chat model names. Example: `{modelName} [{providerName}{remainingBalance}]`. |
+| Balance Refresh Interval    | `balanceRefreshIntervalMs` | Periodic refresh interval for provider balances (milliseconds).                           |
+| Balance Throttle Window     | `balanceThrottleWindowMs`  | Throttle window for post-request balance refresh (milliseconds).                          |
+| Store API Key in Settings   | `storeApiKeyInSettings`    | Please see [Cloud Sync Compatibility](#cloud-sync-compatibility) for details.             |
+| Enable Detailed Logging     | `verbose`                  | Enables more detailed logging for troubleshooting errors.                                 |
 
 </details>
 
