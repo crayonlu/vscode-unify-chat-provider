@@ -1,5 +1,13 @@
 # Changelog
 
+## v5.6.1 - 2026-03-20
+
+### Features
+- add support for GPT-5.4 Mini model in OpenAICodexProvider (4e6115c, SmallMain)
+
+### Fixes
+- enhance message sanitization with detailed tracking and propagation of tool call results (5a20764, SmallMain)
+
 ## v5.6.0 - 2026-03-20
 
 ### Features
