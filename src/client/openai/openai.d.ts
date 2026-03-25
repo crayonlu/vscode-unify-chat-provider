@@ -126,6 +126,13 @@ declare module 'openai/resources/chat/completions' {
     thinking_budget?: number;
 
     /**
+     * Non-standard thinking strategy supported by some OpenAI-compatible providers.
+     *
+     * @see https://cloud.baidu.com/doc/qianfan-docs/s/Wm95lyynv
+     */
+    thinking_strategy?: 'short_think' | 'chain_of_draft';
+
+    /**
      * Non-standard reasoning toggle supported by some OpenAI-compatible providers.
      *
      * Used by Cerebras for GLM-family models.

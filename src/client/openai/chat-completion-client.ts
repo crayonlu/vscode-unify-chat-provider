@@ -678,6 +678,19 @@ export class OpenAIChatCompletionProvider implements ApiProvider {
     }
   }
 
+  private buildThinkingStrategyParam(
+    model: ModelConfig,
+  ): Partial<ChatCompletionCreateParamsBase> {
+    const summary = model.thinking?.summary;
+    if (!summary || summary === 'auto' || model.thinking?.type === 'disabled') {
+      return {};
+    }
+    return {
+      thinking_strategy:
+        summary === 'concise' ? 'short_think' : 'chain_of_draft',
+    };
+  }
+
   private normalizeReasoningEffortForThinking(
     effort:
       | 'none'
@@ -778,6 +791,11 @@ export class OpenAIChatCompletionProvider implements ApiProvider {
       this.config,
       model,
     );
+    const useThinkingStrategyParam = isFeatureSupported(
+      FeatureId.OpenAIUseThinkingStrategyParam,
+      this.config,
+      model,
+    );
     const useReasoningDetails = isFeatureSupported(
       FeatureId.OpenAIUseReasoningDetails,
       this.config,
@@ -863,6 +881,9 @@ export class OpenAIChatCompletionProvider implements ApiProvider {
       model: getBaseModelId(model.id),
       messages: convertedMessages,
       ...this.buildReasoningParams(model, thinkingParamType),
+      ...(useThinkingStrategyParam
+        ? this.buildThinkingStrategyParam(model)
+        : {}),
       ...(serviceTier !== undefined ? { service_tier: serviceTier } : {}),
       ...(useTopK && model.topK !== undefined ? { top_k: model.topK } : {}),
       ...(useClearThinking ? { clear_thinking: false } : {}),

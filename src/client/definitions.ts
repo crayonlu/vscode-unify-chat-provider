@@ -122,6 +122,17 @@ export const PROVIDER_TYPES: Record<ProviderType, ProviderDefinition> = {
  */
 export const PROVIDER_KEYS = Object.keys(PROVIDER_TYPES) as ProviderType[];
 
+function isBaiduQianfanModel(
+  model: { id: string; family?: string },
+  provider: { baseUrl: string },
+  modelIds: readonly string[],
+): boolean {
+  return (
+    matchProvider(provider.baseUrl, 'qianfan.baidubce.com') &&
+    modelIds.includes(getBaseModelId(model.id))
+  );
+}
+
 export enum FeatureId {
   /**
    * @see https://www.volcengine.com/docs/82379/1569618?lang=zh
@@ -234,6 +245,12 @@ export enum FeatureId {
    * @see https://modelstudio.console.alibabacloud.com/?tab=api#/api/?type=model&url=2712576
    */
   OpenAIUseThinkingBudgetParam = 'openai_use-thinking-budget-param',
+  /**
+   * Use `thinking_strategy` parameter in OpenAI-compatible Chat Completion APIs.
+   *
+   * @see https://cloud.baidu.com/doc/qianfan-docs/s/Wm95lyynv
+   */
+  OpenAIUseThinkingStrategyParam = 'openai_use-thinking-strategy-param',
   /**
    * Thinking reasoning content to be included in the response.
    *
@@ -382,6 +399,7 @@ export const FEATURES: Record<FeatureId, Feature> = {
       'ark.cn-beijing.volces.com',
       'ark.ap-southeast.bytepluses.com',
       'router.huggingface.co',
+      'qianfan.baidubce.com',
       'portal.qwen.ai',
       'api.siliconflow.cn',
       'api.siliconflow.com',
@@ -430,6 +448,15 @@ export const FEATURES: Record<FeatureId, Feature> = {
       'api.z.ai',
     ],
     customCheckers: [
+      (model, provider) =>
+        isBaiduQianfanModel(model, provider, [
+          'deepseek-v3.2',
+          'deepseek-v3.1',
+          'deepseek-v3.1-250821',
+          'kimi-k2.5',
+          'glm-5',
+          'glm-4.7',
+        ]),
       // Checker for Nvidia GLM models:
       (model, provider) =>
         matchProvider(provider.baseUrl, 'integrate.api.nvidia.com') &&
@@ -449,6 +476,10 @@ export const FEATURES: Record<FeatureId, Feature> = {
       'ark.cn-beijing.volces.com',
       'ark.ap-southeast.bytepluses.com',
       'api.synthetic.new',
+    ],
+    customCheckers: [
+      (model, provider) =>
+        isBaiduQianfanModel(model, provider, ['gpt-oss-120b', 'gpt-oss-20b']),
     ],
   },
   [FeatureId.OpenAIStripIncludeParam]: {
@@ -490,6 +521,23 @@ export const FEATURES: Record<FeatureId, Feature> = {
       'api.siliconflow.com',
       'api.longcat.chat',
     ],
+    customCheckers: [
+      (model, provider) =>
+        isBaiduQianfanModel(model, provider, [
+          'qwen3-235b-a22b',
+          'qwen3-30b-a3b',
+          'qwen3-32b',
+          'qwen3-14b',
+          'qwen3-8b',
+          'qwen3-4b',
+          'qwen3-1.7b',
+          'qwen3-0.6b',
+          'ernie-4.5-turbo-vl-preview',
+          'ernie-4.5-turbo-vl-32k-preview',
+          'ernie-4.5-vl-28b-a3b',
+          'ernie-5.0-thinking-preview',
+        ]),
+    ],
   },
   [FeatureId.OpenAIUseThinkingBudgetParam]: {
     supportedProviders: [
@@ -500,6 +548,28 @@ export const FEATURES: Record<FeatureId, Feature> = {
       'api.siliconflow.com',
       'api.longcat.chat',
     ],
+    customCheckers: [
+      (model, provider) =>
+        isBaiduQianfanModel(model, provider, [
+          'ernie-5.0-thinking-preview',
+          'deepseek-v3.2-think',
+          'deepseek-v3.1-250821',
+          'deepseek-r1-250528',
+          'qwen3-235b-a22b-thinking-2507',
+          'qwen3-30b-a3b-thinking-2507',
+          'qwen3-235b-a22b',
+          'qwen3-30b-a3b',
+          'qwen3-32b',
+          'qwen3-14b',
+          'qwen3-8b',
+          'qwen3-4b',
+          'qwen3-1.7b',
+          'qwen3-0.6b',
+        ]),
+    ],
+  },
+  [FeatureId.OpenAIUseThinkingStrategyParam]: {
+    supportedProviders: ['qianfan.baidubce.com'],
   },
   [FeatureId.OpenAIUseReasoningContent]: {
     supportedProviders: [
@@ -519,6 +589,7 @@ export const FEATURES: Record<FeatureId, Feature> = {
       'api.siliconflow.com',
       'api.longcat.chat',
       'api.synthetic.new',
+      'qianfan.baidubce.com',
     ],
     customCheckers: [
       // Checker for Nvidia GLM models:
@@ -557,7 +628,10 @@ export const FEATURES: Record<FeatureId, Feature> = {
     ],
   },
   [FeatureId.OpenAIUseRawBaseUrl]: {
-    supportedProviders: ['api.kilo.ai/api/gateway'],
+    supportedProviders: [
+      'api.kilo.ai/api/gateway',
+      'qianfan.baidubce.com/v2/coding',
+    ],
   },
   [FeatureId.GeminiUseThinkingLevel]: {
     supportedFamilys: ['gemini-3-'],
