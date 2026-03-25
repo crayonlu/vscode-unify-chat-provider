@@ -1,5 +1,18 @@
 # Changelog
 
+## v5.7.0 - 2026-03-25
+
+### Features
+- add Baidu Qianfan provider and models support (62f35ba, SmallMain)
+- add Alibaba Cloud Coding Intl and Cline Bot providers (5bf7868, David Lam)
+
+### Fixes
+- vertex-ai: support global location endpoint (d32a14b, SmallMain)
+- update model IDs and provider names for consistency (3f0d990, SmallMain)
+
+### Refactors
+- clean up balance providers and add MiniMax support (c91ad57, David Lam)
+
 ## v5.6.2 - 2026-03-22
 
 ### Fixes
