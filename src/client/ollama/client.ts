@@ -500,6 +500,8 @@ export class OllamaProvider implements ApiProvider {
     const sanitizedMessages = sanitizeMessagesForModelSwitch(messages, {
       modelId: encodedModelId,
       expectedIdentity,
+      imageRetention:
+        model.capabilities?.imageInput === true ? 'all' : 'discard',
     });
     const convertedMessages = this.convertMessages(
       encodedModelId,

@@ -710,6 +710,8 @@ export class AnthropicProvider implements ApiProvider {
     const sanitizedMessages = sanitizeMessagesForModelSwitch(messages, {
       modelId: encodedModelId,
       expectedIdentity,
+      imageRetention:
+        model.capabilities?.imageInput === true ? 'all' : 'discard',
     });
 
     const thinkingType = model.thinking?.type;

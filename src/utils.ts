@@ -1208,6 +1208,8 @@ export interface SanitizedMessagesForModelSwitchResult {
   sanitizedMessageIndexes: ReadonlySet<number>;
 }
 
+export type SanitizedImagePartRetention = 'discard' | 'user-only' | 'all';
+
 function collectToolCallIds(
   message: vscode.LanguageModelChatRequestMessage,
 ): string[] {
@@ -1235,8 +1237,9 @@ function collectToolResultIds(
   );
 }
 
-function sanitizeMessageToTextOnly(
+function sanitizeMessageForModelSwitch(
   message: vscode.LanguageModelChatRequestMessage,
+  imageRetention: SanitizedImagePartRetention,
 ): vscode.LanguageModelChatRequestMessage | undefined {
   if (
     message.role !== vscode.LanguageModelChatMessageRole.User &&
@@ -1245,19 +1248,37 @@ function sanitizeMessageToTextOnly(
     return message;
   }
 
-  const textParts = message.content.filter(
-    (part): part is vscode.LanguageModelTextPart =>
-      part instanceof vscode.LanguageModelTextPart,
+  const portableParts = message.content.filter(
+    (
+      part,
+    ): part is vscode.LanguageModelTextPart | vscode.LanguageModelDataPart => {
+      if (part instanceof vscode.LanguageModelTextPart) {
+        return true;
+      }
+
+      if (
+        !(part instanceof vscode.LanguageModelDataPart) ||
+        !isImageMarker(part) ||
+        imageRetention === 'discard'
+      ) {
+        return false;
+      }
+
+      return (
+        imageRetention === 'all' ||
+        message.role === vscode.LanguageModelChatMessageRole.User
+      );
+    },
   );
 
-  if (textParts.length === 0) {
+  if (portableParts.length === 0) {
     return undefined;
   }
 
   return {
     role: message.role,
     name: message.name,
-    content: textParts,
+    content: portableParts,
   };
 }
 
@@ -1315,7 +1336,11 @@ function propagateSanitizedToolNeighbors(
 
 export function sanitizeMessagesForModelSwitchDetailed(
   messages: readonly vscode.LanguageModelChatRequestMessage[],
-  options: { modelId: string; expectedIdentity: string },
+  options: {
+    modelId: string;
+    expectedIdentity: string;
+    imageRetention?: SanitizedImagePartRetention;
+  },
 ): SanitizedMessagesForModelSwitchResult {
   const sanitizedMessageIndexes = new Set<number>();
 
@@ -1406,7 +1431,10 @@ export function sanitizeMessagesForModelSwitchDetailed(
       continue;
     }
 
-    const sanitizedMessage = sanitizeMessageToTextOnly(message);
+    const sanitizedMessage = sanitizeMessageForModelSwitch(
+      message,
+      options.imageRetention ?? 'discard',
+    );
     if (sanitizedMessage) {
       out.push(sanitizedMessage);
       messageOriginIndexes.push(index);
@@ -1422,7 +1450,11 @@ export function sanitizeMessagesForModelSwitchDetailed(
 
 export function sanitizeMessagesForModelSwitch(
   messages: readonly vscode.LanguageModelChatRequestMessage[],
-  options: { modelId: string; expectedIdentity: string },
+  options: {
+    modelId: string;
+    expectedIdentity: string;
+    imageRetention?: SanitizedImagePartRetention;
+  },
 ): vscode.LanguageModelChatRequestMessage[] {
   return sanitizeMessagesForModelSwitchDetailed(messages, options).messages;
 }

@@ -572,13 +572,8 @@ export class GoogleAIStudioProvider implements ApiProvider {
       }
 
       if (isImageMarker(part)) {
-        if (
-          role !== vscode.LanguageModelChatMessageRole.User &&
-          role !== 'from_tool_result'
-        ) {
-          throw new Error(
-            'Image parts can only appear in user messages or tool results for this provider',
-          );
+        if (role === vscode.LanguageModelChatMessageRole.System) {
+          throw new Error('Image parts can not appear in system messages');
         }
         const mimeType = normalizeImageMimeType(part.mimeType);
         if (!mimeType) {
@@ -708,6 +703,8 @@ export class GoogleAIStudioProvider implements ApiProvider {
     const sanitizedMessages = sanitizeMessagesForModelSwitch(messages, {
       modelId: encodedModelId,
       expectedIdentity,
+      imageRetention:
+        model.capabilities?.imageInput === true ? 'all' : 'discard',
     });
 
     const { systemInstruction, contents } = this.convertMessages(

@@ -855,6 +855,8 @@ export class OpenAIChatCompletionProvider implements ApiProvider {
     const sanitizedMessages = sanitizeMessagesForModelSwitch(messages, {
       modelId: encodedModelId,
       expectedIdentity,
+      imageRetention:
+        model.capabilities?.imageInput === true ? 'user-only' : 'discard',
     });
 
     const convertedMessages = this.convertMessages(

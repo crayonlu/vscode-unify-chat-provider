@@ -1105,6 +1105,8 @@ export class OpenAIResponsesProvider implements ApiProvider {
     const sanitization = sanitizeMessagesForModelSwitchDetailed(messages, {
       modelId: encodedModelId,
       expectedIdentity,
+      imageRetention:
+        model.capabilities?.imageInput === true ? 'all' : 'discard',
     });
     const sanitizedMessages = sanitization.messages;
 
