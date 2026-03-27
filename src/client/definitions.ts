@@ -522,6 +522,8 @@ export const FEATURES: Record<FeatureId, Feature> = {
       'api.siliconflow.cn',
       'api.siliconflow.com',
       'api.longcat.chat',
+      'wanqing.streamlakeapi.com',
+      'vanchin.streamlake.ai',
     ],
     customCheckers: [
       (model, provider) =>
@@ -633,6 +635,7 @@ export const FEATURES: Record<FeatureId, Feature> = {
     supportedProviders: [
       'api.kilo.ai/api/gateway',
       'qianfan.baidubce.com/v2/coding',
+      'wanqing.streamlakeapi.com/api/gateway/v1/endpoints',
     ],
   },
   [FeatureId.GeminiUseThinkingLevel]: {
