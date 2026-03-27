@@ -10,20 +10,13 @@ const CHANNEL_NAME = 'Unify Chat Provider';
 let channel: vscode.LogOutputChannel | undefined;
 let nextRequestId = 1;
 let nextHttpLogId = 1;
-let hasShownChannel = false;
 
 /**
- * Lazily create and return the log output channel.
+ * Lazily create and return the log output channel without revealing it.
  */
 function getChannel(): vscode.LogOutputChannel {
   if (!channel) {
     channel = vscode.window.createOutputChannel(CHANNEL_NAME, { log: true });
-  }
-
-  // Show the channel once so users notice new logs.
-  if (!hasShownChannel) {
-    hasShownChannel = true;
-    channel.show(true);
   }
 
   return channel;
