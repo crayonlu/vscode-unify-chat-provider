@@ -44,9 +44,10 @@ import { evaluateBalanceWarning } from './balance/warning-utils';
 import { resolveConfiguredEditToolsForVsCode } from './model-capabilities';
 
 const MODEL_DISPLAY_NAME_PLACEHOLDER_PATTERN =
-  /\{(modelName|modelFamily|providerName|remainingBalance)\}/g;
+  /\{(modelId|modelName|modelFamily|providerName|remainingBalance)\}/g;
 
 interface ModelDisplayNameTemplateValues {
+  modelId: string;
   modelName: string;
   modelFamily: string;
   providerName: string;
@@ -116,6 +117,7 @@ export class UnifyChatService implements vscode.LanguageModelChatProvider {
     const remainingBalance =
       formatProviderBadgeSuffixForModelSelection(balanceSnapshot);
     const displayName = this.renderModelDisplayName({
+      modelId: model.id,
       modelName: resolvedModelName,
       modelFamily: resolvedModelFamily,
       providerName: provider.name,
@@ -190,6 +192,8 @@ export class UnifyChatService implements vscode.LanguageModelChatProvider {
     values: ModelDisplayNameTemplateValues,
   ): string {
     switch (key) {
+      case 'modelId':
+        return values.modelId;
       case 'modelName':
         return values.modelName;
       case 'modelFamily':

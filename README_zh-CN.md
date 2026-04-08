@@ -425,7 +425,7 @@ VS Code 的 Copilot Chat 本身就支持登录 GitHub Copilot 账号，所以一
 | 名称                 | ID                         | 介绍                                                                       |
 | -------------------- | -------------------------- | -------------------------------------------------------------------------- |
 | 全局网络设置         | `networkSettings`          | 网络超时/重试设置，这些设置仅影响聊天请求。                                |
-| 模型显示名称模板     | `modelDisplayNameTemplate` | 聊天模型名称模板。示例：`{modelName} [{providerName}{remainingBalance}]`。 |
+| 模型显示名称模板     | `modelDisplayNameTemplate` | 聊天模型名称模板。示例：`{modelName} ({modelId}) [{providerName}{remainingBalance}]`。 |
 | 余额刷新间隔         | `balanceRefreshIntervalMs` | 供应商余额的定时刷新间隔（毫秒）。                                         |
 | 余额节流窗口         | `balanceThrottleWindowMs`  | 请求后余额刷新的节流窗口（毫秒）。                                         |
 | 在设置中存储 Api Key | `storeApiKeyInSettings`    | 请查看 [云同步兼容](#云同步兼容) 了解详情。                                |
