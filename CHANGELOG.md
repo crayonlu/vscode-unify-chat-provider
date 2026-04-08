@@ -1,5 +1,10 @@
 # Changelog
 
+## v5.13.0 - 2026-04-08
+
+### Features
+- add Xiaomi MIMO token plan providers (2b211d0, SmallMain)
+
 ## v5.12.0 - 2026-04-08
 
 ### Features
