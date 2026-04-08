@@ -219,7 +219,7 @@ export const WELL_KNOWN_PROVIDERS: WellKnownProviderConfig[] = [
     authTypes: ['api-key'],
     models: [
       'qwen3-max-2026-01-23',
-      'qwen3.5-plus',
+      'qwen3.6-plus',
       'qwen3.5-flash',
       'qwen3-coder-plus',
       'qwen3-coder-flash',
@@ -267,7 +267,7 @@ export const WELL_KNOWN_PROVIDERS: WellKnownProviderConfig[] = [
     authTypes: ['api-key'],
     models: [
       'qwen3-max-2026-01-23',
-      'qwen3.5-plus',
+      'qwen3.6-plus',
       'qwen3.5-flash',
       'qwen3-coder-plus',
       'qwen3-coder-flash',
@@ -447,7 +447,7 @@ export const WELL_KNOWN_PROVIDERS: WellKnownProviderConfig[] = [
     authTypes: ['api-key'],
     models: [
       'glm-5.1',
-      'glm-5',
+      'glm-5v-turbo',
       'glm-5-turbo',
       'glm-4.7',
       'glm-4.6v',
@@ -464,7 +464,7 @@ export const WELL_KNOWN_PROVIDERS: WellKnownProviderConfig[] = [
     authTypes: ['api-key'],
     models: [
       'glm-5.1',
-      'glm-5',
+      'glm-5v-turbo',
       'glm-5-turbo',
       'glm-4.7',
       'glm-4.6',
@@ -480,7 +480,7 @@ export const WELL_KNOWN_PROVIDERS: WellKnownProviderConfig[] = [
     authTypes: ['api-key'],
     models: [
       'glm-5.1',
-      'glm-5',
+      'glm-5v-turbo',
       'glm-5-turbo',
       'glm-4.7',
       'glm-4.6v',
@@ -497,7 +497,7 @@ export const WELL_KNOWN_PROVIDERS: WellKnownProviderConfig[] = [
     authTypes: ['api-key'],
     models: [
       'glm-5.1',
-      'glm-5',
+      'glm-5v-turbo',
       'glm-5-turbo',
       'glm-4.7',
       'glm-4.6',
