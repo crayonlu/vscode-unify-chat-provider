@@ -2,7 +2,6 @@
 
 # P1
 
-- Commit message generate support.
 - FIM/NES support.
 - Supports load balancing for multiple accounts and multiple suppliers.
 - The `nativeTool` should include a configuration option within `ModelConfig`. In addition to `Default`, `Enable`, and `Disable`, add an `Auto` option that automatically selects the appropriate setting based on the model family. Also, include native tool implementations for various models to force a specific choice. Remove the related `Features`. Add the `Anthropic WebFetchTool` and ensure that citation content is handled correctly (it may not be displayed directly).
