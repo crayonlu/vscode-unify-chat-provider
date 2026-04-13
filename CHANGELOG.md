@@ -1,5 +1,15 @@
 # Changelog
 
+## v6.1.0 - 2026-04-13
+
+### Features
+- add commit message generation feature (b7b8568, SmallMain)
+
+### Chores
+- remove chat editing capability (70aeb77, SmallMain)
+- update dts (b864f5d, SmallMain)
+- update roadmap (2966be6, SmallMain)
+
 ## v6.0.1 - 2026-04-10
 
 ### Fixes
