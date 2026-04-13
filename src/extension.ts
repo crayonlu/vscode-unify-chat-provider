@@ -37,6 +37,7 @@ import {
   disposeContextWindowHookBridge,
   initializeContextWindowHookBridge,
 } from './context-window-hook-bridge';
+import { registerCommitMessageGeneration } from './commit-message';
 
 const VENDOR_ID = 'unify-chat-provider';
 /**
@@ -320,6 +321,7 @@ export async function activate(
 
   // Register commands
   registerCommands(context, configStore, secretStore, uriHandler);
+  registerCommitMessageGeneration(context);
 
   context.subscriptions.push(
     registerBalanceStatusBar({ context, store: configStore }),

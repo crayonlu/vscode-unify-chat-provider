@@ -178,6 +178,26 @@
       {
         "command": "unifyChatProvider.syncBuiltInParamsToAllConfigs",
         "title": "%command.syncBuiltInParamsToAllConfigs.title%"
+      },
+      {
+        "command": "unifyChatProvider.commitMessageGeneration.generate",
+        "title": "%command.commitMessageGeneration.generate.title%",
+        "icon": "$(edit-sparkle)"
+      },
+      {
+        "command": "unifyChatProvider.commitMessageGeneration.generateStaged",
+        "title": "%command.commitMessageGeneration.generateStaged.title%",
+        "icon": "$(edit-sparkle)"
+      },
+      {
+        "command": "unifyChatProvider.commitMessageGeneration.generateWorkingTree",
+        "title": "%command.commitMessageGeneration.generateWorkingTree.title%",
+        "icon": "$(edit-sparkle)"
+      },
+      {
+        "command": "unifyChatProvider.commitMessageGeneration.changeModel",
+        "title": "%command.commitMessageGeneration.changeModel.title%",
+        "icon": "$(edit-sparkle)"
       }
     ],
     "configuration": {
@@ -310,6 +330,71 @@
                 }
               }
             }
+          }
+        },
+        "unifyChatProvider.commitMessageGeneration.enableButtons": {
+          "type": "boolean",
+          "scope": "window",
+          "description": "%configuration.commitMessageGeneration.enableButtons.description%",
+          "default": true
+        },
+        "unifyChatProvider.commitMessageGeneration.model": {
+          "type": "object",
+          "scope": "window",
+          "description": "%configuration.commitMessageGeneration.model.description%",
+          "default": {
+            "vendor": "",
+            "id": ""
+          },
+          "additionalProperties": false,
+          "properties": {
+            "vendor": {
+              "type": "string",
+              "description": "%configuration.commitMessageGeneration.model.vendor.description%"
+            },
+            "id": {
+              "type": "string",
+              "description": "%configuration.commitMessageGeneration.model.id.description%"
+            }
+          }
+        },
+        "unifyChatProvider.commitMessageGeneration.format": {
+          "type": "string",
+          "scope": "window",
+          "description": "%configuration.commitMessageGeneration.format.description%",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "conventional",
+            "angular",
+            "google",
+            "atom",
+            "plain",
+            "custom"
+          ],
+          "enumDescriptions": [
+            "%configuration.commitMessageGeneration.format.enumDescriptions.0%",
+            "%configuration.commitMessageGeneration.format.enumDescriptions.1%",
+            "%configuration.commitMessageGeneration.format.enumDescriptions.2%",
+            "%configuration.commitMessageGeneration.format.enumDescriptions.3%",
+            "%configuration.commitMessageGeneration.format.enumDescriptions.4%",
+            "%configuration.commitMessageGeneration.format.enumDescriptions.5%",
+            "%configuration.commitMessageGeneration.format.enumDescriptions.6%"
+          ]
+        },
+        "unifyChatProvider.commitMessageGeneration.customInstructions": {
+          "type": "string",
+          "scope": "window",
+          "description": "%configuration.commitMessageGeneration.customInstructions.description%",
+          "default": ""
+        },
+        "unifyChatProvider.commitMessageGeneration.excludeFiles": {
+          "type": "array",
+          "scope": "window",
+          "description": "%configuration.commitMessageGeneration.excludeFiles.description%",
+          "default": [],
+          "items": {
+            "type": "string"
           }
         },
         "unifyChatProvider.endpoints": {
@@ -1366,6 +1451,27 @@
           "default": []
         }
       }
+    },
+    "menus": {
+      "scm/title": [
+        {
+          "command": "unifyChatProvider.commitMessageGeneration.generate",
+          "group": "navigation@-4",
+          "when": "config.git.enabled && scmProvider == git && unifyChatProvider.gitAvailable && unifyChatProvider.commitMessageGenerationButtonsEnabled"
+        }
+      ],
+      "scm/resourceGroup/context": [
+        {
+          "command": "unifyChatProvider.commitMessageGeneration.generateStaged",
+          "group": "inline@-3",
+          "when": "config.git.enabled && scmProvider == git && scmResourceGroup == index && unifyChatProvider.gitAvailable && unifyChatProvider.commitMessageGenerationButtonsEnabled"
+        },
+        {
+          "command": "unifyChatProvider.commitMessageGeneration.generateWorkingTree",
+          "group": "inline@-3",
+          "when": "config.git.enabled && scmProvider == git && scmResourceGroup == workingTree && unifyChatProvider.gitAvailable && unifyChatProvider.commitMessageGenerationButtonsEnabled"
+        }
+      ]
     }
   },
   "scripts": {
@@ -1391,6 +1497,7 @@
     "@huggingface/tokenizers": "^0.1.2",
     "@iarna/toml": "^2.2.5",
     "@vscode/l10n": "^0.0.18",
+    "minimatch": "^9.0.9",
     "ollama": "^0.6.3",
     "openai": "^6.27.0",
     "tiktoken": "^1.0.22",

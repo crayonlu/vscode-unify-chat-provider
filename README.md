@@ -396,6 +396,20 @@ Run `Unify Chat Provider: Sync Built-in Parameters to All Configs` to sync local
 
 This is typically used after a new version updates or optimizes built-in model parameters, allowing you to sync existing configs in one click.
 
+## Commit Message Generation
+
+You can generate commit messages via the following commands:
+
+- `Unify Chat Provider: Generate Commit Message`
+- `Unify Chat Provider: Generate Commit Message(Staged Changes)`
+- `Unify Chat Provider: Generate Commit Message(Unstaged Changes)`
+
+You can also click the commit message generation button in the Source Control view. Different button locations correspond to different context ranges:
+
+- Repository view: all changes
+- Staged Changes group: staged changes
+- Changes group: unstaged changes
+
 ## Balance Monitoring
 
 Use this feature to monitor provider balances in `Provider Settings`.
@@ -420,18 +434,24 @@ Use this feature to monitor provider balances in `Provider Settings`.
 
 ### Global Settings
 
-All `unifyChatProvider.*` settings are application-scoped and shared across profiles on the same device.
+- Most `unifyChatProvider.*` settings are application-scoped and shared across profiles on the same device.
+- Commit message generation settings are window-scoped and can be configured per workspace.
 
 <details>
 
-| Name                        | ID                         | Description                                                                               |
-| --------------------------- | -------------------------- | ----------------------------------------------------------------------------------------- |
-| Global Network Settings     | `networkSettings`          | Network timeout/retry settings, which only affect chat requests.                          |
-| Model Display Name Template | `modelDisplayNameTemplate` | Template for chat model names. Example: `{modelName} ({modelId}) [{providerName}{remainingBalance}]`. |
-| Balance Refresh Interval    | `balanceRefreshIntervalMs` | Periodic refresh interval for provider balances (milliseconds).                           |
-| Balance Throttle Window     | `balanceThrottleWindowMs`  | Throttle window for post-request balance refresh (milliseconds).                          |
-| Store API Key in Settings   | `storeApiKeyInSettings`    | Please see [Cloud Sync Compatibility](#cloud-sync-compatibility) for details.             |
-| Enable Detailed Logging     | `verbose`                  | Enables more detailed logging for troubleshooting errors.                                 |
+| Name                               | ID                                           | Description                                                                                           |
+| ---------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Global Network Settings            | `networkSettings`                            | Network timeout/retry settings, which only affect chat requests.                                      |
+| Model Display Name Template        | `modelDisplayNameTemplate`                   | Template for chat model names. Example: `{modelName} ({modelId}) [{providerName}{remainingBalance}]`. |
+| Balance Refresh Interval           | `balanceRefreshIntervalMs`                   | Periodic refresh interval for provider balances (milliseconds).                                       |
+| Balance Throttle Window            | `balanceThrottleWindowMs`                    | Throttle window for post-request balance refresh (milliseconds).                                      |
+| Store API Key in Settings          | `storeApiKeyInSettings`                      | Please see [Cloud Sync Compatibility](#cloud-sync-compatibility) for details.                         |
+| Enable Detailed Logging            | `verbose`                                    | Enables more detailed logging for troubleshooting errors.                                             |
+| Commit Message Buttons             | `commitMessageGeneration.enableButtons`      | Controls whether commit message generation buttons are shown in the Source Control view.              |
+| Commit Message Model               | `commitMessageGeneration.model`              | Model selection used for commit message generation.                                                   |
+| Commit Message Format              | `commitMessageGeneration.format`             | Commit message format used for commit message generation.                                             |
+| Commit Message Custom Instructions | `commitMessageGeneration.customInstructions` | Additional instructions appended to the commit message generation system prompt.                      |
+| Commit Message Exclude Files       | `commitMessageGeneration.excludeFiles`       | VS Code glob patterns for files whose diffs should be omitted from commit message generation prompts. |
 
 </details>
 

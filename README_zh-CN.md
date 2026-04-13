@@ -396,6 +396,20 @@ VS Code 的 Copilot Chat 本身就支持登录 GitHub Copilot 账号，所以一
 
 一般用于新版本对内置模型参数进行了优化调整后进行一键同步。
 
+## 提交消息生成
+
+你可以通过以下命令生成提交消息：
+
+- `Unify Chat Provider: 生成提交消息`
+- `Unify Chat Provider: 生成提交消息(暂存更改)`
+- `Unify Chat Provider: 生成提交消息(未暂存更改)`
+
+也可以在源代码管理面板点击生成提交消息按钮，不同位置的按钮对应的生成上下文范围不同：
+
+- 仓库视图：所有更改
+- 暂存更改组：暂存的更改
+- 更改组：未暂存的更改
+
 ## 余额监控
 
 可在 `供应商配置` 中启用并查看供应商余额监控。
@@ -420,18 +434,24 @@ VS Code 的 Copilot Chat 本身就支持登录 GitHub Copilot 账号，所以一
 
 ### 全局设置
 
-所有 `unifyChatProvider.*` 设置项都是应用级作用域，会在同一台设备的不同 Profile 之间共享。
+- 大部分 `unifyChatProvider.*` 设置项为应用级作用域，会在同一台设备的不同 Profile 之间共享。
+- 提交消息生成相关设置为窗口级作用域，可在不同工作区分别配置。
 
 <details>
 
-| 名称                 | ID                         | 介绍                                                                       |
-| -------------------- | -------------------------- | -------------------------------------------------------------------------- |
-| 全局网络设置         | `networkSettings`          | 网络超时/重试设置，这些设置仅影响聊天请求。                                |
-| 模型显示名称模板     | `modelDisplayNameTemplate` | 聊天模型名称模板。示例：`{modelName} ({modelId}) [{providerName}{remainingBalance}]`。 |
-| 余额刷新间隔         | `balanceRefreshIntervalMs` | 供应商余额的定时刷新间隔（毫秒）。                                         |
-| 余额节流窗口         | `balanceThrottleWindowMs`  | 请求后余额刷新的节流窗口（毫秒）。                                         |
-| 在设置中存储 Api Key | `storeApiKeyInSettings`    | 请查看 [云同步兼容](#云同步兼容) 了解详情。                                |
-| 启用详细日志         | `verbose`                  | 启用更详细的日志以排查错误。                                               |
+| 名称                   | ID                                           | 介绍                                                                                   |
+| ---------------------- | -------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 全局网络设置           | `networkSettings`                            | 网络超时/重试设置，这些设置仅影响聊天请求。                                            |
+| 模型显示名称模板       | `modelDisplayNameTemplate`                   | 聊天模型名称模板。示例：`{modelName} ({modelId}) [{providerName}{remainingBalance}]`。 |
+| 余额刷新间隔           | `balanceRefreshIntervalMs`                   | 供应商余额的定时刷新间隔（毫秒）。                                                     |
+| 余额节流窗口           | `balanceThrottleWindowMs`                    | 请求后余额刷新的节流窗口（毫秒）。                                                     |
+| 在设置中存储 Api Key   | `storeApiKeyInSettings`                      | 请查看 [云同步兼容](#云同步兼容) 了解详情。                                            |
+| 启用详细日志           | `verbose`                                    | 启用更详细的日志以排查错误。                                                           |
+| 提交消息生成按钮       | `commitMessageGeneration.enableButtons`      | 控制是否在源代码管理面板显示提交消息生成按钮。                                         |
+| 提交消息生成模型       | `commitMessageGeneration.model`              | 用于提交消息生成的模型选择。                                                           |
+| 提交消息生成格式       | `commitMessageGeneration.format`             | 用于提交消息生成的提交消息格式。                                                       |
+| 提交消息生成自定义指令 | `commitMessageGeneration.customInstructions` | 追加到提交消息生成系统提示中的额外指令。                                               |
+| 提交消息生成排除文件   | `commitMessageGeneration.excludeFiles`       | 用于从提交消息生成 prompt 中省略 diff 的 VS Code glob 文件模式。                       |
 
 </details>
 
