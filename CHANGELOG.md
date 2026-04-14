@@ -1,5 +1,14 @@
 # Changelog
 
+## v6.1.1 - 2026-04-14
+
+### Refactors
+- add detailed logging and timing for commit message generation (d2d1748, SmallMain)
+- add abort controller for retry cancellation (3602d45, SmallMain)
+
+### Chores
+- update roadmap (c5de66b, SmallMain)
+
 ## v6.1.0 - 2026-04-13
 
 ### Features
