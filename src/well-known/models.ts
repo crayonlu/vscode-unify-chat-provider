@@ -437,6 +437,7 @@ const _WELL_KNOWN_MODELS = [
     thinking: {
       type: 'auto',
       effort: 'max',
+      summary: 'auto',
     },
     capabilities: {
       toolCalling: true,
