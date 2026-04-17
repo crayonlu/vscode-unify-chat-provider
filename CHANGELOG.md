@@ -1,5 +1,10 @@
 # Changelog
 
+## v6.2.1 - 2026-04-17
+
+### Features
+- add auto summary to thinking configuration (230a6e1, SmallMain)
+
 ## v6.2.0 - 2026-04-17
 
 ### Features
