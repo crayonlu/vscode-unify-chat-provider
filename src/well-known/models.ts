@@ -101,6 +101,26 @@ function anthropicAdaptiveReasoningEffort<T extends readonly ThinkingEffort[]>(
   });
 }
 
+function withThinkingSummaryAuto(
+  template: ReturnType<typeof adaptiveReasoningEffort>,
+): ReturnType<typeof adaptiveReasoningEffort> {
+  return {
+    ...template,
+    presets: template.presets.map((preset) => ({
+      ...preset,
+      config: preset.config.thinking
+        ? {
+            ...preset.config,
+            thinking: {
+              ...preset.config.thinking,
+              summary: 'auto',
+            },
+          }
+        : preset.config,
+    })),
+  };
+}
+
 function anthropicBudgetReasoningEffort(
   defaultEffort: 'high' | 'medium' | 'low',
 ) {
@@ -445,9 +465,11 @@ const _WELL_KNOWN_MODELS = [
       editTools: 'multi-find-replace',
     },
     presetTemplates: [
-      anthropicAdaptiveReasoningEffort(
-        ANTHROPIC_OPUS_4_7_REASONING_EFFORTS,
-        'max',
+      withThinkingSummaryAuto(
+        anthropicAdaptiveReasoningEffort(
+          ANTHROPIC_OPUS_4_7_REASONING_EFFORTS,
+          'max',
+        ),
       ),
     ],
   },
