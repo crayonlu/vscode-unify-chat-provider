@@ -1,5 +1,10 @@
 # Changelog
 
+## v6.2.3 - 2026-04-19
+
+### Features
+- add undici fallback for fetch with retry (2d67b62, SmallMain)
+
 ## v6.2.2 - 2026-04-17
 
 ### Features
