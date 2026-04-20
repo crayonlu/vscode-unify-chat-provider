@@ -798,9 +798,9 @@ export class AnthropicProvider implements ApiProvider {
       betaFeatures.add('fine-grained-tool-streaming-2025-05-14');
     }
 
-    // Enable 1M context beta for supported Claude models when maxOutputTokens > 1,000,000
+    // Enable 1M context beta for supported Claude models when maxInputTokens >= 1,000,000
     if (
-      (model.maxOutputTokens ?? 0) > 1_000_000 &&
+      (model.maxInputTokens ?? 0) >= 1_000_000 &&
       isFeatureSupported(FeatureId.AnthropicContext1M, this.config, model)
     ) {
       betaFeatures.add('context-1m-2025-08-07');
