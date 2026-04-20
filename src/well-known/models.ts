@@ -2303,6 +2303,20 @@ const _WELL_KNOWN_MODELS = [
     },
   },
   {
+    id: 'qwen3.6-flash',
+    name: 'Qwen3.6-Flash',
+    maxInputTokens: 262144,
+    maxOutputTokens: 64000,
+    stream: true,
+    thinking: {
+      type: 'enabled',
+    },
+    capabilities: {
+      toolCalling: true,
+      imageInput: true,
+    },
+  },
+  {
     id: 'qwen3.5-plus',
     name: 'Qwen3.5-Plus',
     maxInputTokens: 1000000,
