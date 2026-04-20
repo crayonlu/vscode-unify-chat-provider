@@ -1,5 +1,10 @@
 # Changelog
 
+## v6.3.0 - 2026-04-20
+
+### Features
+- add Qwen3.6-Max-Preview model and increase Flash context window (37b2459, SmallMain)
+
 ## v6.2.4 - 2026-04-20
 
 ### Features
