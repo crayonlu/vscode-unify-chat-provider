@@ -1,5 +1,11 @@
 # Changelog
 
+## v6.2.4 - 2026-04-20
+
+### Features
+- add claude-opus-4.7 model variants to supported families (33dee2d, SmallMain)
+- add Qwen3.6-Flash model support (1435a7e, SmallMain)
+
 ## v6.2.3 - 2026-04-19
 
 ### Features
