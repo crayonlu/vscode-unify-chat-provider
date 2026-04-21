@@ -1,5 +1,10 @@
 # Changelog
 
+## v6.4.1 - 2026-04-21
+
+### Fixes
+- 1M context beta condition for Claude models (30ed6d8, Li Dongmin)
+
 ## v6.4.0 - 2026-04-21
 
 ### Features
