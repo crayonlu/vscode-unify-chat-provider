@@ -383,7 +383,14 @@ export const FEATURES: Record<FeatureId, Feature> = {
     ],
   },
   [FeatureId.OpenAIOnlyMaxCompletionTokens]: {
-    supportedProviders: ['api.cerebras.ai', 'opencode.ai', 'api.synthetic.new'],
+    supportedProviders: [
+      'api.cerebras.ai',
+      'opencode.ai',
+      'api.synthetic.new',
+      'api.moonshot.cn',
+      'api.moonshot.ai',
+      'api.kimi.com',
+    ],
     supportedFamilys: [
       'codex-mini-latest',
       'gpt-5.2',

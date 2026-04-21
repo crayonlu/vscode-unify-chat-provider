@@ -2142,6 +2142,44 @@ const _WELL_KNOWN_MODELS = [
     temperature: 1.0,
   },
   {
+    id: 'kimi-k2.6',
+    overrides: [
+      {
+        matchers: ['integrate.api.nvidia.com'],
+        config: {
+          id: 'moonshotai/kimi-k2.6',
+          maxOutputTokens: 32768,
+        },
+      },
+      {
+        matchers: [
+          'ark.cn-beijing.volces.com',
+          'ark.ap-southeast.bytepluses.com',
+          'coding.dashscope.aliyuncs.com',
+          'coding-intl.dashscope.aliyuncs.com',
+          'dashscope.aliyuncs.com',
+          'dashscope-intl.aliyuncs.com',
+          'api-inference.modelscope.cn',
+        ],
+        config: {
+          maxOutputTokens: 32768,
+        },
+      },
+    ],
+    name: 'Kimi K2.6',
+    maxInputTokens: 262144,
+    maxOutputTokens: 128000,
+    stream: true,
+    thinking: {
+      type: 'enabled',
+    },
+    capabilities: {
+      toolCalling: true,
+      imageInput: true,
+    },
+    presetTemplates: [thinkingMode()],
+  },
+  {
     id: 'kimi-k2.5',
     overrides: [
       'kimi-k2.5-free',
