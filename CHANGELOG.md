@@ -1,5 +1,10 @@
 # Changelog
 
+## v6.4.0 - 2026-04-21
+
+### Features
+- add Kimi K2.6 model support with max completion tokens (82e3349, SmallMain)
+
 ## v6.3.0 - 2026-04-20
 
 ### Features
