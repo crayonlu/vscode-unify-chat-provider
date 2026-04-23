@@ -1,5 +1,13 @@
 # Changelog
 
+## v6.5.0 - 2026-04-23
+
+### Breaking Changes
+- remove Qwen Code provider support (aaf0ec6, SmallMain)
+
+### Features
+- add Xiaomi MiMo V2.5 models (38ee370, SmallMain)
+
 ## v6.4.1 - 2026-04-21
 
 ### Fixes
