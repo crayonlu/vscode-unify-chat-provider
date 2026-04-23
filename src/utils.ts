@@ -1,4 +1,5 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import type { ConnectionOptions } from 'node:tls';
 import { DataPartMimeTypes, StatefulMarkerData } from './client/types';
 import type { ProviderHttpLogger } from './logger';
 import { officialModelsManager } from './official-models-manager';
@@ -10,7 +11,7 @@ import type {
   TimeoutConfig,
 } from './types';
 import * as vscode from 'vscode';
-import { fetch as undiciFetch } from 'undici';
+import { EnvHttpProxyAgent, fetch as undiciFetch } from 'undici';
 import type { Dispatcher } from 'undici';
 import { t } from './i18n';
 
@@ -713,6 +714,362 @@ type RequestInitWithDispatcher = RequestInit & { dispatcher?: Dispatcher };
 
 type UndiciFetchInit = Parameters<typeof undiciFetch>[1];
 type UndiciFetchResponse = Awaited<ReturnType<typeof undiciFetch>>;
+type HttpProxySupportMode = 'off' | 'on' | 'fallback' | 'override';
+type TlsCa = ConnectionOptions['ca'];
+type EnvProxyDispatcherInit = NonNullable<
+  ConstructorParameters<typeof EnvHttpProxyAgent>[0]
+>;
+type EnvProxyTlsOptions = NonNullable<EnvProxyDispatcherInit['requestTls']>;
+
+interface ResolvedHttpProxySettings {
+  proxy?: string;
+  proxyAuthorization?: string;
+  proxyStrictSSL: boolean;
+  proxySupport: HttpProxySupportMode;
+  noProxy: string[];
+}
+
+interface ResolvedUndiciDispatcherOptions {
+  allowH2?: boolean;
+  bodyTimeout?: number;
+  connectTimeout?: number;
+  headersTimeout?: number;
+  proxyCA?: TlsCa;
+  requestCA?: TlsCa;
+  socketPath?: string;
+}
+
+interface UndiciAgentLikeOptions {
+  allowH2?: unknown;
+  bodyTimeout?: unknown;
+  connect?: unknown;
+  connectTimeout?: unknown;
+  headersTimeout?: unknown;
+}
+
+interface UndiciProxyAgentLikeOptions {
+  allowH2?: unknown;
+  bodyTimeout?: unknown;
+  connectTimeout?: unknown;
+  headersTimeout?: unknown;
+  proxyTls?: unknown;
+  requestTls?: unknown;
+}
+
+const defaultDispatcherCache = new Map<string, Dispatcher>();
+const proxiedDispatcherCache = new WeakMap<Dispatcher, Map<string, Dispatcher>>();
+
+function readConfiguredHttpProxySupport(value: unknown): HttpProxySupportMode {
+  switch (value) {
+    case 'off':
+    case 'on':
+    case 'fallback':
+    case 'override':
+      return value;
+    default:
+      return 'override';
+  }
+}
+
+function normalizeProxyString(value: string | undefined): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  return trimmed === '' ? undefined : trimmed;
+}
+
+function normalizeNoProxyList(value: readonly string[] | undefined): string[] {
+  if (!value) {
+    return [];
+  }
+
+  return value
+    .map((entry) => entry.trim())
+    .filter((entry) => entry !== '');
+}
+
+function getConfiguredHttpProxySettings(): ResolvedHttpProxySettings {
+  const config = vscode.workspace.getConfiguration('http');
+  const proxy = normalizeProxyString(config.get<string>('proxy'));
+  const proxyAuthorization = normalizeProxyString(
+    config.get<string | null>('proxyAuthorization') ?? undefined,
+  );
+
+  return {
+    proxy,
+    proxyAuthorization,
+    proxyStrictSSL: config.get<boolean>('proxyStrictSSL') ?? true,
+    proxySupport: readConfiguredHttpProxySupport(
+      config.get<unknown>('proxySupport'),
+    ),
+    noProxy: normalizeNoProxyList(config.get<string[]>('noProxy')),
+  };
+}
+
+function getObjectSymbolValue(
+  target: object,
+  description: string,
+): unknown {
+  const symbol = Object.getOwnPropertySymbols(target).find(
+    (candidate) => candidate.description === description,
+  );
+  return symbol === undefined ? undefined : Reflect.get(target, symbol);
+}
+
+function isTlsCa(value: unknown): value is TlsCa {
+  return (
+    typeof value === 'string' ||
+    isUint8Array(value) ||
+    (Array.isArray(value) &&
+      value.every((entry) => typeof entry === 'string' || isUint8Array(entry)))
+  );
+}
+
+function readTlsCa(value: unknown): TlsCa | undefined {
+  return isTlsCa(value) ? value : undefined;
+}
+
+function readDispatcherConnectOptions(
+  value: unknown,
+): { requestCA?: TlsCa; socketPath?: string } {
+  if (!isRecord(value)) {
+    return {};
+  }
+
+  const requestCA = readTlsCa(value['ca']);
+  const socketPathRaw = value['socketPath'];
+  const socketPath =
+    typeof socketPathRaw === 'string' && socketPathRaw.trim() !== ''
+      ? socketPathRaw
+      : undefined;
+
+  return { requestCA, socketPath };
+}
+
+function readDispatcherTlsOptions(value: unknown): { ca?: TlsCa } {
+  if (!isRecord(value)) {
+    return {};
+  }
+
+  const ca = readTlsCa(value['ca']);
+  return { ca };
+}
+
+function getDispatcherOptions(
+  dispatcher: Dispatcher,
+): ResolvedUndiciDispatcherOptions {
+  const out: ResolvedUndiciDispatcherOptions = {};
+
+  const rawAgentOptions = getObjectSymbolValue(dispatcher, 'options');
+  if (isRecord(rawAgentOptions)) {
+    const agentOptions = rawAgentOptions as UndiciAgentLikeOptions;
+    const allowH2 = agentOptions.allowH2;
+    if (typeof allowH2 === 'boolean') {
+      out.allowH2 = allowH2;
+    }
+
+    const connectTimeout = readPositiveInteger(agentOptions.connectTimeout);
+    if (connectTimeout !== undefined) {
+      out.connectTimeout = connectTimeout;
+    }
+
+    const headersTimeout = readPositiveInteger(agentOptions.headersTimeout);
+    if (headersTimeout !== undefined) {
+      out.headersTimeout = headersTimeout;
+    }
+
+    const bodyTimeout = readPositiveInteger(agentOptions.bodyTimeout);
+    if (bodyTimeout !== undefined) {
+      out.bodyTimeout = bodyTimeout;
+    }
+
+    const connectOptions = readDispatcherConnectOptions(agentOptions.connect);
+    if (connectOptions.requestCA !== undefined) {
+      out.requestCA = connectOptions.requestCA;
+    }
+    if (connectOptions.socketPath !== undefined) {
+      out.socketPath = connectOptions.socketPath;
+    }
+  }
+
+  const rawProxyAgent = getObjectSymbolValue(dispatcher, 'proxy agent');
+  if (typeof rawProxyAgent === 'object' && rawProxyAgent !== null) {
+    const rawProxyOptions = getObjectSymbolValue(rawProxyAgent, 'options');
+    if (isRecord(rawProxyOptions)) {
+      const proxyOptions = rawProxyOptions as UndiciProxyAgentLikeOptions;
+      const allowH2 = proxyOptions.allowH2;
+      if (typeof allowH2 === 'boolean') {
+        out.allowH2 = allowH2;
+      }
+
+      const connectTimeout = readPositiveInteger(proxyOptions.connectTimeout);
+      if (connectTimeout !== undefined) {
+        out.connectTimeout = connectTimeout;
+      }
+
+      const headersTimeout = readPositiveInteger(proxyOptions.headersTimeout);
+      if (headersTimeout !== undefined) {
+        out.headersTimeout = headersTimeout;
+      }
+
+      const bodyTimeout = readPositiveInteger(proxyOptions.bodyTimeout);
+      if (bodyTimeout !== undefined) {
+        out.bodyTimeout = bodyTimeout;
+      }
+
+      const requestTls = readDispatcherTlsOptions(proxyOptions.requestTls);
+      if (requestTls.ca !== undefined) {
+        out.requestCA = requestTls.ca;
+      }
+
+      const proxyTls = readDispatcherTlsOptions(proxyOptions.proxyTls);
+      if (proxyTls.ca !== undefined) {
+        out.proxyCA = proxyTls.ca;
+      }
+    }
+  }
+
+  return out;
+}
+
+function setIfDefined<K extends keyof EnvProxyDispatcherInit>(
+  target: EnvProxyDispatcherInit,
+  key: K,
+  value: EnvProxyDispatcherInit[K] | undefined,
+): void {
+  if (value !== undefined) {
+    target[key] = value;
+  }
+}
+
+function hasOwnProperties(value: object): boolean {
+  return Object.keys(value).length > 0;
+}
+
+function createEnvProxyDispatcher(
+  originalDispatcher: Dispatcher | undefined,
+  settings: ResolvedHttpProxySettings,
+): Dispatcher {
+  const base =
+    originalDispatcher === undefined ? {} : getDispatcherOptions(originalDispatcher);
+
+  if (originalDispatcher !== undefined && base.socketPath !== undefined) {
+    return originalDispatcher;
+  }
+
+  const signature = JSON.stringify({
+    allowH2: base.allowH2,
+    bodyTimeout: base.bodyTimeout,
+    connectTimeout: base.connectTimeout,
+    envHttpProxy: process.env.HTTP_PROXY ?? process.env.http_proxy ?? '',
+    envHttpsProxy:
+      process.env.HTTPS_PROXY ??
+      process.env.https_proxy ??
+      process.env.HTTP_PROXY ??
+      process.env.http_proxy ??
+      '',
+    envNoProxy: process.env.NO_PROXY ?? process.env.no_proxy ?? '',
+    headersTimeout: base.headersTimeout,
+    noProxy: settings.noProxy,
+    proxy: settings.proxy ?? '',
+    proxyAuthorization: settings.proxyAuthorization ?? '',
+    proxyCA: base.proxyCA ? 'custom' : '',
+    proxyStrictSSL: settings.proxyStrictSSL,
+    requestCA: base.requestCA ? 'custom' : '',
+  });
+
+  const dispatcherCache =
+    originalDispatcher === undefined
+      ? defaultDispatcherCache
+      : (proxiedDispatcherCache.get(originalDispatcher) ??
+        (() => {
+          const cache = new Map<string, Dispatcher>();
+          proxiedDispatcherCache.set(originalDispatcher, cache);
+          return cache;
+        })());
+
+  const cached = dispatcherCache.get(signature);
+  if (cached) {
+    return cached;
+  }
+
+  const init: EnvProxyDispatcherInit = {};
+
+  setIfDefined(init, 'allowH2', base.allowH2);
+  setIfDefined(init, 'bodyTimeout', base.bodyTimeout);
+  setIfDefined(init, 'connectTimeout', base.connectTimeout);
+  setIfDefined(init, 'headersTimeout', base.headersTimeout);
+  setIfDefined(init, 'httpProxy', settings.proxy);
+  setIfDefined(init, 'httpsProxy', settings.proxy);
+  setIfDefined(init, 'token', settings.proxyAuthorization);
+
+  const noProxy = settings.noProxy.join(',');
+  if (noProxy !== '') {
+    init.noProxy = noProxy;
+  }
+
+  const connect: ConnectionOptions = {};
+  if (base.requestCA !== undefined) {
+    connect.ca = base.requestCA;
+  }
+  if (!settings.proxyStrictSSL) {
+    connect.rejectUnauthorized = false;
+  }
+  if (hasOwnProperties(connect)) {
+    init.connect = connect;
+  }
+
+  const requestTls: EnvProxyTlsOptions = {};
+  if (base.requestCA !== undefined) {
+    requestTls.ca = base.requestCA;
+  }
+  if (!settings.proxyStrictSSL) {
+    requestTls.rejectUnauthorized = false;
+  }
+  if (hasOwnProperties(requestTls)) {
+    init.requestTls = requestTls;
+  }
+
+  const proxyTls: EnvProxyTlsOptions = {};
+  const proxyCA = base.proxyCA ?? base.requestCA;
+  if (proxyCA !== undefined) {
+    proxyTls.ca = proxyCA;
+  }
+  if (!settings.proxyStrictSSL) {
+    proxyTls.rejectUnauthorized = false;
+  }
+  if (hasOwnProperties(proxyTls)) {
+    init.proxyTls = proxyTls;
+  }
+
+  const dispatcher = new EnvHttpProxyAgent(init);
+  dispatcherCache.set(signature, dispatcher);
+  return dispatcher;
+}
+
+function getUndiciInitWithProxySupport(
+  init?: RequestInitWithDispatcher,
+): RequestInitWithDispatcher | undefined {
+  const settings = getConfiguredHttpProxySettings();
+  if (settings.proxySupport === 'off') {
+    return init;
+  }
+
+  // The dispatcher in this extension is used for timeout behavior, not as an
+  // opt-out from VS Code proxy settings. Keep proxy support enabled unless the
+  // user explicitly disables it with `http.proxySupport: off`.
+  const dispatcher = createEnvProxyDispatcher(init?.dispatcher, settings);
+  if (dispatcher === init?.dispatcher) {
+    return init;
+  }
+
+  return {
+    ...init,
+    dispatcher,
+  };
+}
 
 function supportsUndiciRequestBody(
   body: RequestInit['body'] | null | undefined,
@@ -852,17 +1209,24 @@ function fetchWithUndici(
     typeof Request !== 'undefined' &&
     input instanceof Request
   ) {
-    return fetch(input, init);
+    throw new TypeError('fetchWithRetry does not support Request input');
   }
 
   if (
-    (typeof input !== 'string' && !(input instanceof URL)) ||
-    !supportsUndiciRequestBody(init?.body)
+    typeof input !== 'string' &&
+    !(input instanceof URL)
   ) {
-    return fetch(input, init);
+    throw new TypeError('fetchWithRetry only supports string or URL input');
   }
 
-  return undiciFetch(input, toUndiciRequestInit(init)).then(
+  if (!supportsUndiciRequestBody(init?.body)) {
+    throw new TypeError('fetchWithRetry received an unsupported request body');
+  }
+
+  return undiciFetch(
+    input,
+    toUndiciRequestInit(getUndiciInitWithProxySupport(init)),
+  ).then(
     adaptUndiciResponse,
   );
 }
