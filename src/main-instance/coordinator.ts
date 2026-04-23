@@ -7,10 +7,11 @@ import { authLog } from '../logger';
 import {
   MainInstanceError,
   asRpcError,
-  buildVersionMismatchMessage,
+  buildMainInstanceCompatibilityMismatchMessage,
   type RpcError,
 } from './errors';
 import {
+  MAIN_INSTANCE_COMPATIBILITY_VERSION,
   PROTOCOL_VERSION,
   parseMessageLine,
   serializeMessage,
@@ -369,12 +370,23 @@ export class MainInstanceCoordinator implements vscode.Disposable {
     this.compatibilityError = error;
   }
 
-  private getVersionMismatchError(
-    peerVersion: string | undefined,
+  private getCompatibilityMismatchError(
+    peer: {
+      extensionVersion?: string;
+      protocolVersion?: number;
+      mainInstanceCompatibilityVersion?: number;
+    },
   ): MainInstanceError {
     return new MainInstanceError(
       'INCOMPATIBLE_VERSION',
-      buildVersionMismatchMessage(this.extensionVersion, peerVersion),
+      buildMainInstanceCompatibilityMismatchMessage({
+        localExtensionVersion: this.extensionVersion,
+        peerExtensionVersion: peer.extensionVersion,
+        localProtocolVersion: PROTOCOL_VERSION,
+        peerProtocolVersion: peer.protocolVersion,
+        localCompatibilityVersion: MAIN_INSTANCE_COMPATIBILITY_VERSION,
+        peerCompatibilityVersion: peer.mainInstanceCompatibilityVersion,
+      }),
     );
   }
 
@@ -564,18 +576,20 @@ export class MainInstanceCoordinator implements vscode.Disposable {
 
       const handshake = await this.performFollowerHandshake(socket, token);
       if (handshake?.kind === 'connected') {
-        const localVersion = this.extensionVersion;
-        const peerVersion = handshake.welcome.extensionVersion;
         if (
           handshake.welcome.protocolVersion !== PROTOCOL_VERSION ||
-          !localVersion ||
-          !peerVersion ||
-          peerVersion !== localVersion
+          handshake.welcome.mainInstanceCompatibilityVersion !==
+            MAIN_INSTANCE_COMPATIBILITY_VERSION
         ) {
           socket.destroy();
           this.markIncompatibleLeader(
             handshake.welcome.leaderId,
-            this.getVersionMismatchError(peerVersion),
+            this.getCompatibilityMismatchError({
+              extensionVersion: handshake.welcome.extensionVersion,
+              protocolVersion: handshake.welcome.protocolVersion,
+              mainInstanceCompatibilityVersion:
+                handshake.welcome.mainInstanceCompatibilityVersion,
+            }),
           );
           return 'incompatible';
         }
@@ -634,6 +648,7 @@ export class MainInstanceCoordinator implements vscode.Disposable {
       type: 'hello',
       clientId: this.clientId,
       protocolVersion: PROTOCOL_VERSION,
+      mainInstanceCompatibilityVersion: MAIN_INSTANCE_COMPATIBILITY_VERSION,
       authToken: token,
       extensionVersion: this.extensionVersion,
     };
@@ -753,9 +768,8 @@ export class MainInstanceCoordinator implements vscode.Disposable {
 
       if (
         message.protocolVersion !== PROTOCOL_VERSION ||
-        !this.extensionVersion ||
-        !message.extensionVersion ||
-        message.extensionVersion !== this.extensionVersion
+        message.mainInstanceCompatibilityVersion !==
+          MAIN_INSTANCE_COMPATIBILITY_VERSION
       ) {
         const resp: ResponseMessage = {
           type: 'response',
@@ -763,10 +777,12 @@ export class MainInstanceCoordinator implements vscode.Disposable {
           ok: false,
           error: {
             code: 'INCOMPATIBLE_VERSION',
-            message: buildVersionMismatchMessage(
-              this.extensionVersion,
-              message.extensionVersion,
-            ),
+            message: this.getCompatibilityMismatchError({
+              extensionVersion: message.extensionVersion,
+              protocolVersion: message.protocolVersion,
+              mainInstanceCompatibilityVersion:
+                message.mainInstanceCompatibilityVersion,
+            }).message,
           },
         };
         safeWrite(socket, resp);
@@ -779,6 +795,7 @@ export class MainInstanceCoordinator implements vscode.Disposable {
         type: 'welcome',
         leaderId: this.clientId,
         protocolVersion: PROTOCOL_VERSION,
+        mainInstanceCompatibilityVersion: MAIN_INSTANCE_COMPATIBILITY_VERSION,
         ready: this.ready,
         extensionVersion: this.extensionVersion,
       };

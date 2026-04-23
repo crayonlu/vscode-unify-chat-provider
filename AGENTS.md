@@ -1,5 +1,6 @@
 - Prohibit code that bypasses TypeScript's strict type checking, such as `as any` or `@ts-ignore`.
 - The project does not include any test cases, nor is it necessary to write or run test cases. However, if needed, you can create temporary files to verify whether the code works properly.
+- For main-instance coordination compatibility, do not use the extension/package version as the compatibility boundary. Maintain a separate main-instance compatibility version for that mechanism, and only bump it when IPC/RPC message formats, shared state contracts, or leader/follower behavior become incompatible. Compatible extension releases should continue to interoperate even when their package versions differ.
 - If you don't have a sufficient understanding of the specifications, please refer to the following official documents for more information:
   - [OpenAI API Reference](https://platform.openai.com/docs/api-reference/introduction)
   - [Anthropic API Reference](https://docs.anthropic.com/claude/reference/overview)

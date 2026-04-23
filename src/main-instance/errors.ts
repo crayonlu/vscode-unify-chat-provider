@@ -44,27 +44,37 @@ export function isVersionIncompatibleError(
   );
 }
 
-export function buildVersionMismatchMessage(
-  localVersion: string | undefined,
-  peerVersion: string | undefined,
+export type MainInstanceCompatibilityMismatchDetails = {
+  localExtensionVersion?: string;
+  peerExtensionVersion?: string;
+  localProtocolVersion: number;
+  peerProtocolVersion?: number;
+  localCompatibilityVersion: number;
+  peerCompatibilityVersion?: number;
+};
+
+function formatOptionalText(value: string | undefined): string {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : 'unknown';
+}
+
+function formatOptionalNumber(value: number | undefined): string {
+  return typeof value === 'number' && Number.isFinite(value)
+    ? String(value)
+    : 'unknown';
+}
+
+export function buildMainInstanceCompatibilityMismatchMessage(
+  details: MainInstanceCompatibilityMismatchDetails,
 ): string {
-  if (localVersion && peerVersion) {
-    return t(
-      'Detected another VS Code window running Unify Chat Provider {0} while this window is using {1}. Please reload or update all VS Code windows to the latest version, then try again.',
-      peerVersion,
-      localVersion,
-    );
-  }
-
-  if (localVersion) {
-    return t(
-      'Detected another VS Code window running an older or incompatible version of Unify Chat Provider while this window is using {0}. Please reload or update all VS Code windows to the latest version, then try again.',
-      localVersion,
-    );
-  }
-
   return t(
-    'Detected another VS Code window running an incompatible version of Unify Chat Provider. Please reload or update all VS Code windows to the latest version, then try again.',
+    'Detected another VS Code window running an incompatible main-instance coordination version (peer extension {0}, protocol {1}, compatibility {2}; local extension {3}, protocol {4}, compatibility {5}). Please reload or update all VS Code windows to compatible versions, then try again.',
+    formatOptionalText(details.peerExtensionVersion),
+    formatOptionalNumber(details.peerProtocolVersion),
+    formatOptionalNumber(details.peerCompatibilityVersion),
+    formatOptionalText(details.localExtensionVersion),
+    formatOptionalNumber(details.localProtocolVersion),
+    formatOptionalNumber(details.localCompatibilityVersion),
   );
 }
 

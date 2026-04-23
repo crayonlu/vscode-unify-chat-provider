@@ -1,11 +1,20 @@
 import type { RpcError } from './errors';
 
 export const PROTOCOL_VERSION = 1 as const;
+/**
+ * Compatibility boundary for the main-instance coordination contract.
+ *
+ * Keep this independent from package.json's extension version. Bump it only
+ * when IPC/RPC message contracts, shared state contracts, or leader/follower
+ * behavior become incompatible across extension instances.
+ */
+export const MAIN_INSTANCE_COMPATIBILITY_VERSION = 1 as const;
 
 export type HelloMessage = {
   type: 'hello';
   clientId: string;
   protocolVersion: number;
+  mainInstanceCompatibilityVersion?: number;
   authToken: string;
   extensionVersion?: string;
 };
@@ -14,6 +23,7 @@ export type WelcomeMessage = {
   type: 'welcome';
   leaderId: string;
   protocolVersion: number;
+  mainInstanceCompatibilityVersion?: number;
   ready: boolean;
   extensionVersion?: string;
 };
@@ -58,6 +68,12 @@ function isNonEmptyString(value: unknown): value is string {
 
 function optionalNonEmptyString(value: unknown): string | undefined {
   return isNonEmptyString(value) ? value : undefined;
+}
+
+function optionalFiniteNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value)
+    ? value
+    : undefined;
 }
 
 function isMainInstanceErrorCode(value: unknown): value is RpcError['code'] {
@@ -118,6 +134,9 @@ export function parseMessageLine(line: string): IpcMessage | undefined {
     case 'hello': {
       const clientId = parsed['clientId'];
       const protocolVersion = parsed['protocolVersion'];
+      const mainInstanceCompatibilityVersion = optionalFiniteNumber(
+        parsed['mainInstanceCompatibilityVersion'],
+      );
       const authToken = parsed['authToken'];
       const extensionVersion = optionalNonEmptyString(parsed['extensionVersion']);
       if (
@@ -131,6 +150,7 @@ export function parseMessageLine(line: string): IpcMessage | undefined {
         type: 'hello',
         clientId,
         protocolVersion,
+        mainInstanceCompatibilityVersion,
         authToken,
         extensionVersion,
       };
@@ -138,6 +158,9 @@ export function parseMessageLine(line: string): IpcMessage | undefined {
     case 'welcome': {
       const leaderId = parsed['leaderId'];
       const protocolVersion = parsed['protocolVersion'];
+      const mainInstanceCompatibilityVersion = optionalFiniteNumber(
+        parsed['mainInstanceCompatibilityVersion'],
+      );
       const ready = parsed['ready'];
       const extensionVersion = optionalNonEmptyString(parsed['extensionVersion']);
       if (
@@ -151,6 +174,7 @@ export function parseMessageLine(line: string): IpcMessage | undefined {
         type: 'welcome',
         leaderId,
         protocolVersion,
+        mainInstanceCompatibilityVersion,
         ready,
         extensionVersion,
       };
