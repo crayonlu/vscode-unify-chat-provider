@@ -501,6 +501,233 @@ function normalizeToolSchemaType(value: unknown): string | undefined {
   return undefined;
 }
 
+function appendToolSchemaDescription(
+  target: Record<string, unknown>,
+  hint: string,
+): void {
+  const trimmed = hint.trim();
+  if (!trimmed) {
+    return;
+  }
+
+  const current = target['description'];
+  if (typeof current === 'string' && current.trim()) {
+    if (!current.includes(trimmed)) {
+      target['description'] = `${current.trim()} (${trimmed})`;
+    }
+    return;
+  }
+
+  target['description'] = trimmed;
+}
+
+function readToolSchemaRequiredNames(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(
+    (item): item is string => typeof item === 'string' && item.trim() !== '',
+  );
+}
+
+function mergeToolSchemaRequired(
+  target: Record<string, unknown>,
+  incoming: Record<string, unknown>,
+): void {
+  const required = new Set<string>([
+    ...readToolSchemaRequiredNames(target['required']),
+    ...readToolSchemaRequiredNames(incoming['required']),
+  ]);
+
+  if (required.size > 0) {
+    target['required'] = Array.from(required);
+  } else {
+    delete target['required'];
+  }
+}
+
+function intersectToolSchemaRequired(
+  schemas: readonly Record<string, unknown>[],
+): string[] {
+  if (schemas.length === 0) {
+    return [];
+  }
+
+  let intersection = new Set<string>(
+    readToolSchemaRequiredNames(schemas[0]['required']),
+  );
+
+  for (const schema of schemas.slice(1)) {
+    const current = new Set<string>(
+      readToolSchemaRequiredNames(schema['required']),
+    );
+    intersection = new Set(
+      Array.from(intersection).filter((name) => current.has(name)),
+    );
+  }
+
+  return Array.from(intersection);
+}
+
+function mergeToolSchemaProperties(
+  target: Record<string, unknown>,
+  incoming: Record<string, unknown>,
+): void {
+  const incomingProperties = incoming['properties'];
+  if (!isToolSchemaRecord(incomingProperties)) {
+    return;
+  }
+
+  const targetProperties = isToolSchemaRecord(target['properties'])
+    ? { ...target['properties'] }
+    : {};
+
+  target['properties'] = {
+    ...targetProperties,
+    ...incomingProperties,
+  };
+}
+
+function mergeToolSchemaRecord(
+  target: Record<string, unknown>,
+  incoming: Record<string, unknown>,
+): Record<string, unknown> {
+  const merged: Record<string, unknown> = { ...target };
+
+  const incomingDescription = incoming['description'];
+  if (typeof incomingDescription === 'string') {
+    appendToolSchemaDescription(merged, incomingDescription);
+  }
+
+  mergeToolSchemaProperties(merged, incoming);
+  mergeToolSchemaRequired(merged, incoming);
+
+  for (const [key, value] of Object.entries(incoming)) {
+    if (
+      key === 'description' ||
+      key === 'properties' ||
+      key === 'required' ||
+      key in merged
+    ) {
+      continue;
+    }
+
+    merged[key] = value;
+  }
+
+  return merged;
+}
+
+function getToolSchemaKind(schema: Record<string, unknown>): string {
+  const type = normalizeToolSchemaType(schema['type']);
+  if (type) {
+    return type;
+  }
+  if (isToolSchemaRecord(schema['properties'])) {
+    return 'object';
+  }
+  if (schema['items'] !== undefined) {
+    return 'array';
+  }
+  return 'unknown';
+}
+
+function isObjectLikeToolSchema(schema: Record<string, unknown>): boolean {
+  return (
+    getToolSchemaKind(schema) === 'object' ||
+    isToolSchemaRecord(schema['properties'])
+  );
+}
+
+function scoreToolSchemaVariant(schema: Record<string, unknown>): number {
+  const kind = getToolSchemaKind(schema);
+  if (kind === 'object') {
+    return 3;
+  }
+  if (kind === 'array') {
+    return 2;
+  }
+  if (kind !== 'null' && kind !== 'unknown') {
+    return 1;
+  }
+  return 0;
+}
+
+function getToolSchemaUnionKey(
+  value: Record<string, unknown>,
+): 'anyOf' | 'oneOf' | undefined {
+  const anyOf = value['anyOf'];
+  if (Array.isArray(anyOf) && anyOf.length > 0) {
+    return 'anyOf';
+  }
+
+  const oneOf = value['oneOf'];
+  if (Array.isArray(oneOf) && oneOf.length > 0) {
+    return 'oneOf';
+  }
+
+  return undefined;
+}
+
+function simplifyToolSchemaUnion(
+  base: Record<string, unknown>,
+  variants: readonly Record<string, unknown>[],
+  unionKey: 'anyOf' | 'oneOf',
+): Record<string, unknown> {
+  const objectVariants = variants.filter(isObjectLikeToolSchema);
+  const kinds = Array.from(
+    new Set(variants.map((variant) => getToolSchemaKind(variant))),
+  );
+  const acceptsHint =
+    kinds.length > 0 ? `Accepts: ${kinds.join(' | ')}` : undefined;
+
+  if (objectVariants.length > 0) {
+    const merged: Record<string, unknown> = { ...base, type: 'object' };
+
+    for (const variant of objectVariants) {
+      const description = variant['description'];
+      if (typeof description === 'string') {
+        appendToolSchemaDescription(merged, description);
+      }
+      mergeToolSchemaProperties(merged, variant);
+    }
+
+    const required = new Set<string>([
+      ...readToolSchemaRequiredNames(base['required']),
+      ...intersectToolSchemaRequired(objectVariants),
+    ]);
+    if (required.size > 0) {
+      merged['required'] = Array.from(required);
+    } else {
+      delete merged['required'];
+    }
+
+    if (acceptsHint) {
+      appendToolSchemaDescription(merged, acceptsHint);
+    }
+    appendToolSchemaDescription(merged, `${unionKey} schema simplified`);
+    return merged;
+  }
+
+  let best: Record<string, unknown> | undefined;
+  let bestScore = -1;
+  for (const variant of variants) {
+    const score = scoreToolSchemaVariant(variant);
+    if (score > bestScore) {
+      best = variant;
+      bestScore = score;
+    }
+  }
+
+  const merged = best ? mergeToolSchemaRecord(base, best) : { ...base };
+  if (acceptsHint) {
+    appendToolSchemaDescription(merged, acceptsHint);
+  }
+  appendToolSchemaDescription(merged, `${unionKey} schema simplified`);
+  return merged;
+}
+
 function normalizeToolSchemaValue(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map((item) => normalizeToolSchemaValue(item));
@@ -508,6 +735,51 @@ function normalizeToolSchemaValue(value: unknown): unknown {
 
   if (!isToolSchemaRecord(value)) {
     return value;
+  }
+
+  const allOf = value['allOf'];
+  if (Array.isArray(allOf) && allOf.length > 0) {
+    let merged: Record<string, unknown> = {};
+
+    for (const [key, child] of Object.entries(value)) {
+      if (key === 'allOf') {
+        continue;
+      }
+      merged[key] = normalizeToolSchemaValue(child);
+    }
+
+    for (const item of allOf) {
+      const normalizedItem = normalizeToolSchemaValue(item);
+      if (isToolSchemaRecord(normalizedItem)) {
+        merged = mergeToolSchemaRecord(merged, normalizedItem);
+      }
+    }
+
+    return normalizeToolSchemaValue(merged);
+  }
+
+  const unionKey = getToolSchemaUnionKey(value);
+  if (unionKey) {
+    const variantsRaw = value[unionKey];
+    const variants = Array.isArray(variantsRaw)
+      ? variantsRaw
+          .map((item) => normalizeToolSchemaValue(item))
+          .filter((item): item is Record<string, unknown> =>
+            isToolSchemaRecord(item),
+          )
+      : [];
+    const base: Record<string, unknown> = {};
+
+    for (const [key, child] of Object.entries(value)) {
+      if (key === unionKey) {
+        continue;
+      }
+      base[key] = normalizeToolSchemaValue(child);
+    }
+
+    return normalizeToolSchemaValue(
+      simplifyToolSchemaUnion(base, variants, unionKey),
+    );
   }
 
   const out: Record<string, unknown> = {};
