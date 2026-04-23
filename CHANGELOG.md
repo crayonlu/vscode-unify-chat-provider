@@ -1,5 +1,17 @@
 # Changelog
 
+## v6.6.0 - 2026-04-23
+
+### Breaking Changes
+- decouple main-instance coordination from extension version (3578401, SmallMain)
+
+### Features
+- enhance tool schema normalization with allOf and union support (992d4f1, SmallMain)
+- preserve thought signatures in Google streaming responses (21ad025, SmallMain)
+
+### Refactors
+- omit SDK timeout for Google streaming requests (aad124a, SmallMain)
+
 ## v6.5.1 - 2026-04-23
 
 ### Fixes
