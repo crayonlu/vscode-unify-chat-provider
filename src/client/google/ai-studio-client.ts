@@ -81,6 +81,17 @@ function mergeJsonRecord(
   return merged;
 }
 
+function getThoughtSignature(part: Part): string | undefined {
+  if (
+    typeof part.thoughtSignature !== 'string' ||
+    !part.thoughtSignature.trim()
+  ) {
+    return undefined;
+  }
+
+  return part.thoughtSignature;
+}
+
 export class GoogleAIStudioProvider implements ApiProvider {
   protected readonly baseUrl: string;
   protected readonly apiVersion: string;
@@ -315,7 +326,7 @@ export class GoogleAIStudioProvider implements ApiProvider {
                 markerParts[0],
               );
               for (const content of raw) {
-                contents.push(content);
+                contents.push(this.withModelRole(content));
               }
               break;
             } catch {}
@@ -427,6 +438,10 @@ export class GoogleAIStudioProvider implements ApiProvider {
       uuid: type === 'uuid' ? idOrUuid : undefined,
       id: type === 'id' ? idOrUuid : undefined,
     };
+  }
+
+  private withModelRole(content: Content): Content {
+    return content.role === 'model' ? content : { ...content, role: 'model' };
   }
 
   /**
@@ -556,6 +571,11 @@ export class GoogleAIStudioProvider implements ApiProvider {
           ? { args: mergeJsonRecord(targetCall.args, anonymousCall.args) }
           : undefined),
       };
+
+      const thoughtSignature = getThoughtSignature(anonymousPart);
+      if (thoughtSignature && !getThoughtSignature(targetPart)) {
+        targetPart.thoughtSignature = thoughtSignature;
+      }
     }
   }
 
@@ -1003,8 +1023,9 @@ export class GoogleAIStudioProvider implements ApiProvider {
 
     const candidate = message.candidates?.[0];
     const content = candidate?.content;
+    const contentForHistory = content ? this.withModelRole(content) : undefined;
 
-    const parts = content?.parts ?? [];
+    const parts = contentForHistory?.parts ?? [];
 
     const metadata: ThinkingBlockMetadata = {};
     const stateParts: Part[] = [];
@@ -1043,7 +1064,7 @@ export class GoogleAIStudioProvider implements ApiProvider {
 
     yield encodeStatefulMarkerPart<Content[]>(
       expectedIdentity,
-      content ? [content] : [],
+      contentForHistory ? [contentForHistory] : [],
     );
 
     if (message.usageMetadata) {
@@ -1061,9 +1082,8 @@ export class GoogleAIStudioProvider implements ApiProvider {
     const recordFirstToken = createFirstTokenRecorder(performanceTrace);
 
     let _completeThinking = '';
-    // NOTE: does not process the signature
-    // because according to Gemini's official statement,
-    // it is impossible to correctly process the signature.
+    // Preserve signatures on the raw Part objects; moving them into generic
+    // thinking metadata would lose the part positions Gemini validates.
     let lastUsage: GenerateContentResponse['usageMetadata'] | undefined;
     let toolCallIndex = 0;
 
@@ -1083,7 +1103,8 @@ export class GoogleAIStudioProvider implements ApiProvider {
       const content = chunk.candidates?.[0]?.content;
 
       if (content && this.isValidContent(content)) {
-        const parts = content.parts!;
+        const contentForHistory = this.withModelRole(content);
+        const parts = contentForHistory.parts!;
 
         // Check if this chunk contains only nameless functionCall parts (streaming arg-update
         // deltas from the Gemini API). These should be merged into the previous content rather
@@ -1100,7 +1121,7 @@ export class GoogleAIStudioProvider implements ApiProvider {
           const prev = outputContents[outputContents.length - 1];
           prev.parts = [...(prev.parts ?? []), ...parts];
         } else {
-          outputContents.push(content);
+          outputContents.push(contentForHistory);
         }
 
         for (const part of parts) {
@@ -1138,10 +1159,7 @@ export class GoogleAIStudioProvider implements ApiProvider {
     }
 
     // from gemini sdk
-    if (
-      outputContents.length > 0 &&
-      outputContents.every((content) => content.role !== undefined)
-    ) {
+    if (outputContents.length > 0) {
       yield encodeStatefulMarkerPart<Content[]>(expectedIdentity, outputContents);
     } else {
       yield encodeStatefulMarkerPart<Content[]>(

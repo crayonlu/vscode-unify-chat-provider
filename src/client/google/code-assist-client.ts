@@ -1832,34 +1832,36 @@ export abstract class GoogleCodeAssistProvider extends GoogleAIStudioProvider {
       sanitizeContentsForRequest(contents);
     }
 
-    for (const content of contents) {
-      const parts = content.parts;
-      if (!parts || parts.length === 0) {
-        continue;
-      }
-
-      const signature = parts.find((part) => {
-        return (
-          typeof part.thoughtSignature === 'string' &&
-          part.thoughtSignature.trim().length > 0
-        );
-      })?.thoughtSignature;
-
-      if (!signature) {
-        continue;
-      }
-
-      let changed = false;
-      const nextParts = parts.map((part) => {
-        if (part.functionCall && !part.thoughtSignature) {
-          changed = true;
-          return { ...part, thoughtSignature: signature };
+    if (isClaudeModel) {
+      for (const content of contents) {
+        const parts = content.parts;
+        if (!parts || parts.length === 0) {
+          continue;
         }
-        return part;
-      });
 
-      if (changed) {
-        content.parts = nextParts;
+        const signature = parts.find((part) => {
+          return (
+            typeof part.thoughtSignature === 'string' &&
+            part.thoughtSignature.trim().length > 0
+          );
+        })?.thoughtSignature;
+
+        if (!signature) {
+          continue;
+        }
+
+        let changed = false;
+        const nextParts = parts.map((part) => {
+          if (part.functionCall && !part.thoughtSignature) {
+            changed = true;
+            return { ...part, thoughtSignature: signature };
+          }
+          return part;
+        });
+
+        if (changed) {
+          content.parts = nextParts;
+        }
       }
     }
 
