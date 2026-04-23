@@ -32,7 +32,7 @@ Unify Chat Provider
 - 📦 **开箱即用**：一键配置，或从主流应用和扩展一键迁移，支持自动同步官方模型列表，无需繁琐操作。
 - 💾 **导入导出**：拥有完善的导入和导出功能，支持多种方式（Base64、JSON、URL、URI）导入已有配置。
 - 💎 **极致体验**：可视化界面配置，模型参数完全开放，支持无限供应商及模型配置，支持同供应商及模型多个配置变体共存。
-- ✨ **One More Thing**：一键使用你的 Claude Code、Gemini CLI、Antigravity、Github Copilot、Qwen Code、OpenAI Codex (ChatGPT Plus/Pro) 账号配额。
+- ✨ **One More Thing**：一键使用你的 Claude Code、Gemini CLI、Antigravity、Github Copilot、OpenAI Codex (ChatGPT Plus/Pro) 账号配额。
 
 ## 安装
 
@@ -747,7 +747,6 @@ vscode://SmallMain.vscode-unify-chat-provider/import-config?config=<input>&auth=
 | 供应商                                                 | 免费额度                    | 余额监控 |
 | :----------------------------------------------------- | --------------------------- | :------: |
 | [OpenAI Codex (ChatGPT Plus/Pro)](https://openai.com/) |                             |    ✅    |
-| [Qwen Code](https://github.com/QwenLM/qwen-code)       | [详情](#qwen-code)          |
 | [GitHub Copilot](https://github.com/features/copilot)  | [详情](#github-copilot)     |
 | [Google Antigravity](https://antigravity.google/)      | [详情](#google-antigravity) |    ✅    |
 | [Google Gemini CLI](https://geminicli.com/)            | [详情](#google-gemini-cli)  |    ✅    |
@@ -767,12 +766,6 @@ vscode://SmallMain.vscode-unify-chat-provider/import-config?config=<input>&auth=
   - `minimax/minimax-m2.5`
   - `kwaipilot/kat-coder-pro`
   - `z-ai/glm-5`
-
-#### Qwen Code
-
-- 完全免费。
-- 支持模型：
-  - `coder-model`（Qwen3.6-Plus）
 
 #### GitHub Copilot
 

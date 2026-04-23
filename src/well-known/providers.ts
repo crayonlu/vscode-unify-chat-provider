@@ -661,15 +661,6 @@ export const WELL_KNOWN_PROVIDERS: WellKnownProviderConfig[] = [
     autoFetchOfficialModels: true,
   },
   {
-    name: 'Qwen Code',
-    category: 'Experimental',
-    type: 'qwen-code',
-    baseUrl: 'https://portal.qwen.ai',
-    authTypes: ['qwen-code'],
-    models: [],
-    autoFetchOfficialModels: true,
-  },
-  {
     name: 'GitHub Copilot',
     category: 'Experimental',
     type: 'github-copilot',

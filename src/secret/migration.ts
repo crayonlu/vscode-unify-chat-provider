@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import type { ConfigStore } from '../config-store';
+import { PROVIDER_KEYS, type ProviderType } from '../client/definitions';
 import type { ProviderConfig } from '../types';
 import type { AuthConfig } from '../auth/types';
 import { stableStringify } from '../config-ops';
@@ -30,6 +31,10 @@ export function renameLegacyProviderType(
   value: string,
 ): RenamedProviderType | string {
   return getRenamedProviderType(value) ?? value;
+}
+
+function isSupportedProviderType(value: string): value is ProviderType {
+  return PROVIDER_KEYS.includes(value as ProviderType);
 }
 
 function getApiKeyFromAuth(auth: AuthConfig | undefined): string | undefined {
@@ -116,24 +121,29 @@ export async function migrateProviderTypes(
   }
 
   let didChange = false;
-  const updated = rawEndpoints.map((item): unknown => {
+  const updated = rawEndpoints.flatMap((item): unknown[] => {
     if (!item || typeof item !== 'object' || Array.isArray(item)) {
-      return item;
+      return [item];
     }
 
     const obj = item as Record<string, unknown>;
     const typeValue = obj['type'];
     if (typeof typeValue !== 'string') {
-      return item;
+      return [item];
     }
 
     const renamed = renameLegacyProviderType(typeValue);
-    if (renamed === typeValue) {
-      return item;
+    if (!isSupportedProviderType(renamed)) {
+      didChange = true;
+      return [];
     }
 
-    didChange = true;
-    return { ...obj, type: renamed };
+    if (renamed !== typeValue) {
+      didChange = true;
+      return [{ ...obj, type: renamed }];
+    }
+
+    return [item];
   });
 
   if (didChange) {

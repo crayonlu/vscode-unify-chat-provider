@@ -8,7 +8,6 @@ import { GitHubCopilotAuthProvider } from './providers/github-copilot';
 import { GoogleVertexAIAuthProvider } from './providers/google-vertex-ai-auth';
 import { ClaudeCodeAuthProvider } from './providers/claude-code';
 import { OpenAICodexAuthProvider } from './providers/openai-codex';
-import { QwenCodeAuthProvider } from './providers/qwen-code';
 import { OAuth2AuthProvider } from './providers/oauth2';
 import { AuthConfig } from './types';
 
@@ -100,13 +99,6 @@ export const AUTH_METHODS = {
     description: t('Authenticate using Claude Code OAuth'),
     category: 'Experimental',
     ctor: ClaudeCodeAuthProvider,
-  },
-  'qwen-code': {
-    id: 'qwen-code',
-    label: t('Qwen Code'),
-    description: t('Authenticate using Qwen Code device authorization flow'),
-    category: 'Experimental',
-    ctor: QwenCodeAuthProvider,
   },
   'github-copilot': {
     id: 'github-copilot',

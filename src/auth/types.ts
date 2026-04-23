@@ -8,7 +8,6 @@ export type AuthMethod =
   | 'google-vertex-ai-auth'
   | 'claude-code'
   | 'openai-codex'
-  | 'qwen-code'
   | 'github-copilot';
 
 export type AuthTokenInfo =
@@ -181,18 +180,6 @@ export interface ClaudeCodeAuthConfig {
   email?: string;
 }
 
-export interface QwenCodeAuthConfig {
-  method: 'qwen-code';
-  label?: string;
-  description?: string;
-  identityId?: string;
-  token?: string;
-  /** Optional user label (email/alias) for display */
-  email?: string;
-  /** Resource hostname returned by Qwen OAuth (e.g. portal.qwen.ai) */
-  resourceUrl?: string;
-}
-
 export interface GitHubCopilotAuthConfig {
   method: 'github-copilot';
   label?: string;
@@ -273,7 +260,6 @@ export type AuthConfig =
   | GeminiCliOAuthConfig
   | OpenAICodexAuthConfig
   | ClaudeCodeAuthConfig
-  | QwenCodeAuthConfig
   | GitHubCopilotAuthConfig
   | GoogleVertexAIAuthConfig;
 

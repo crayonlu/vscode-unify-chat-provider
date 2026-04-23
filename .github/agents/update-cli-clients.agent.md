@@ -45,8 +45,6 @@ tools:
 - Github Copilot Client：参考 CLIProxyAPI 项目，本地路径：`/Users/smallmain/Documents/Work/CLIProxyAPI`
 - Open AI Codex Client：参考 CLIProxyAPI 项目，本地路径：`/Users/smallmain/Documents/Work/CLIProxyAPI`
 - Antigravity / Gemini CLI Client：参考 CLIProxyAPI 项目，本地路径：`/Users/smallmain/Documents/Work/CLIProxyAPI`
-- Qwen Code Client: 参考 CLIProxyAPI 项目，本地路径：`/Users/smallmain/Documents/Work/CLIProxyAPI`
-- iFlow CLI Client: 参考 CLIProxyAPI 项目，本地路径：`/Users/smallmain/Documents/Work/CLIProxyAPI`
 
 如果用户明确指定了客户端，那么只维护指定的客户端；否则，维护所有列出的客户端。
 
