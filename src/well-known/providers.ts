@@ -405,7 +405,7 @@ export const WELL_KNOWN_PROVIDERS: WellKnownProviderConfig[] = [
     type: 'openai-chat-completion',
     baseUrl: 'https://api.xiaomimimo.com/v1',
     authTypes: ['api-key'],
-    models: ['mimo-v2-pro', 'mimo-v2-omni', 'mimo-v2-flash'],
+    models: ['mimo-v2.5-pro', 'mimo-v2.5'],
   },
   {
     name: 'Xiaomi MIMO (China, Token Plan)',
@@ -413,7 +413,7 @@ export const WELL_KNOWN_PROVIDERS: WellKnownProviderConfig[] = [
     type: 'openai-chat-completion',
     baseUrl: 'https://token-plan-cn.xiaomimimo.com/v1',
     authTypes: ['api-key'],
-    models: ['mimo-v2-pro', 'mimo-v2-omni', 'mimo-v2-flash'],
+    models: ['mimo-v2.5-pro', 'mimo-v2.5'],
   },
   {
     name: 'Xiaomi MIMO (Singapore, Token Plan)',
@@ -421,7 +421,7 @@ export const WELL_KNOWN_PROVIDERS: WellKnownProviderConfig[] = [
     type: 'openai-chat-completion',
     baseUrl: 'https://token-plan-sgp.xiaomimimo.com/v1',
     authTypes: ['api-key'],
-    models: ['mimo-v2-pro', 'mimo-v2-omni', 'mimo-v2-flash'],
+    models: ['mimo-v2.5-pro', 'mimo-v2.5'],
   },
   {
     name: 'Xiaomi MIMO (Europe, Token Plan)',
@@ -429,7 +429,7 @@ export const WELL_KNOWN_PROVIDERS: WellKnownProviderConfig[] = [
     type: 'openai-chat-completion',
     baseUrl: 'https://token-plan-ams.xiaomimimo.com/v1',
     authTypes: ['api-key'],
-    models: ['mimo-v2-pro', 'mimo-v2-omni', 'mimo-v2-flash'],
+    models: ['mimo-v2.5-pro', 'mimo-v2.5'],
   },
   {
     name: 'StepFun (China)',

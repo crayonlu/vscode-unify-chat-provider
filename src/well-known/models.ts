@@ -3480,6 +3480,34 @@ const _WELL_KNOWN_MODELS = [
     },
   },
   {
+    id: 'mimo-v2.5-pro',
+    name: 'MiMo V2.5 Pro',
+    maxInputTokens: 1000000,
+    maxOutputTokens: 128000,
+    stream: true,
+    thinking: {
+      type: 'enabled',
+    },
+    capabilities: {
+      toolCalling: true,
+      imageInput: false,
+    },
+  },
+  {
+    id: 'mimo-v2.5',
+    name: 'MiMo V2.5',
+    maxInputTokens: 1000000,
+    maxOutputTokens: 128000,
+    stream: true,
+    thinking: {
+      type: 'enabled',
+    },
+    capabilities: {
+      toolCalling: true,
+      imageInput: true,
+    },
+  },
+  {
     id: 'mimo-v2-pro',
     name: 'MiMo V2 Pro',
     maxInputTokens: 1000000,
