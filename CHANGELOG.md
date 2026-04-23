@@ -1,5 +1,10 @@
 # Changelog
 
+## v6.5.1 - 2026-04-23
+
+### Fixes
+- add EnvHttpProxyAgent with TLS and proxy support to undici fetch requests (5372dba, SmallMain)
+
 ## v6.5.0 - 2026-04-23
 
 ### Breaking Changes
