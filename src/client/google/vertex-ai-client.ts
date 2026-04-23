@@ -7,6 +7,7 @@ import {
   DEFAULT_NORMAL_TIMEOUT_CONFIG,
   FetchMode,
   resolveChatNetwork,
+  resolveGoogleSdkTimeoutMs,
 } from '../../utils';
 import type {
   AuthTokenInfo,
@@ -156,9 +157,10 @@ export class VertexAIProvider extends GoogleAIStudioProvider {
     const effectiveTimeout =
       chatNetwork?.timeout ?? DEFAULT_NORMAL_TIMEOUT_CONFIG;
 
-    const requestTimeoutMs = streamEnabled
-      ? effectiveTimeout.connection
-      : effectiveTimeout.response;
+    const sdkTimeoutMs = resolveGoogleSdkTimeoutMs(
+      effectiveTimeout,
+      streamEnabled,
+    );
 
     const token = getToken(credential);
     const auth = this.config.auth;
@@ -169,7 +171,7 @@ export class VertexAIProvider extends GoogleAIStudioProvider {
         auth as GoogleVertexAIAuthConfig,
         token,
         modelConfig,
-        requestTimeoutMs,
+        sdkTimeoutMs,
         credential,
       );
     }
@@ -178,7 +180,7 @@ export class VertexAIProvider extends GoogleAIStudioProvider {
     return this.createClientWithLegacyAuth(
       token,
       modelConfig,
-      requestTimeoutMs,
+      sdkTimeoutMs,
       credential,
     );
   }
@@ -191,7 +193,7 @@ export class VertexAIProvider extends GoogleAIStudioProvider {
     auth: GoogleVertexAIAuthConfig,
     token: string | undefined,
     modelConfig: ModelConfig | undefined,
-    requestTimeoutMs: number,
+    sdkTimeoutMs: number | undefined,
     credential?: AuthTokenInfo,
   ): GoogleGenAI {
     if (auth.subType === 'adc') {
@@ -202,7 +204,7 @@ export class VertexAIProvider extends GoogleAIStudioProvider {
       const httpOptions: HttpOptions = {
         baseUrl,
         headers: this.buildHeaders(credential, modelConfig),
-        timeout: requestTimeoutMs,
+        ...(sdkTimeoutMs !== undefined ? { timeout: sdkTimeoutMs } : {}),
         extraBody: this.buildExtraBody(modelConfig),
       };
 
@@ -223,7 +225,7 @@ export class VertexAIProvider extends GoogleAIStudioProvider {
       const httpOptions: HttpOptions = {
         baseUrl,
         headers: this.buildHeaders(credential, modelConfig),
-        timeout: requestTimeoutMs,
+        ...(sdkTimeoutMs !== undefined ? { timeout: sdkTimeoutMs } : {}),
         extraBody: this.buildExtraBody(modelConfig),
       };
 
@@ -243,7 +245,7 @@ export class VertexAIProvider extends GoogleAIStudioProvider {
     const httpOptions: HttpOptions = {
       baseUrl: 'https://aiplatform.googleapis.com',
       headers: this.buildHeaders(credential, modelConfig),
-      timeout: requestTimeoutMs,
+      ...(sdkTimeoutMs !== undefined ? { timeout: sdkTimeoutMs } : {}),
       extraBody: this.buildExtraBody(modelConfig),
     };
 
@@ -262,7 +264,7 @@ export class VertexAIProvider extends GoogleAIStudioProvider {
   private createClientWithLegacyAuth(
     token: string | undefined,
     modelConfig: ModelConfig | undefined,
-    requestTimeoutMs: number,
+    sdkTimeoutMs: number | undefined,
     credential?: AuthTokenInfo,
   ): GoogleGenAI {
     const detected = this.detectAuthMethod(token);
@@ -272,7 +274,7 @@ export class VertexAIProvider extends GoogleAIStudioProvider {
     const httpOptions: HttpOptions = {
       baseUrl: this.vertexBaseDomain ?? this.baseUrl,
       headers: this.buildHeaders(credential, modelConfig),
-      timeout: requestTimeoutMs,
+      ...(sdkTimeoutMs !== undefined ? { timeout: sdkTimeoutMs } : {}),
       extraBody: this.buildExtraBody(modelConfig),
     };
 

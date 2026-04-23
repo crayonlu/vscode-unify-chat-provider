@@ -299,6 +299,29 @@ export function resolveOpenAISdkTimeoutMs(
   return MAX_SAFE_TIMEOUT_MS;
 }
 
+/**
+ * Resolve the request timeout passed to the Google GenAI SDK.
+ *
+ * The SDK timeout is a total request timeout and is also sent as a server
+ * timeout header. For streaming requests this conflicts with our own timeout
+ * model:
+ * - connection timeout is enforced by `fetchWithRetryUsingFetch`
+ * - response idle timeout is enforced by `withIdleTimeout`
+ *
+ * Omit the SDK timeout for streaming requests so long-running healthy streams
+ * are not aborted by the SDK before our idle timeout can make the decision.
+ */
+export function resolveGoogleSdkTimeoutMs(
+  timeout: Pick<ResolvedChatTimeoutConfig, 'connection' | 'response'>,
+  stream: boolean,
+): number | undefined {
+  if (stream) {
+    return undefined;
+  }
+
+  return Math.min(timeout.response, MAX_SAFE_TIMEOUT_MS);
+}
+
 export interface FetchWithRetryOptions extends RequestInit {
   retryConfig?: RetryConfig;
   logger?: ProviderHttpLogger;

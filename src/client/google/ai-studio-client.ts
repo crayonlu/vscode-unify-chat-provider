@@ -34,6 +34,7 @@ import {
   isInternalMarker,
   normalizeImageMimeType,
   resolveChatNetwork,
+  resolveGoogleSdkTimeoutMs,
   sanitizeMessagesForModelSwitch,
   type RetryConfig,
   withIdleTimeout,
@@ -136,16 +137,17 @@ export class GoogleAIStudioProvider implements ApiProvider {
     const effectiveTimeout =
       chatNetwork?.timeout ?? DEFAULT_NORMAL_TIMEOUT_CONFIG;
 
-    const requestTimeoutMs = streamEnabled
-      ? effectiveTimeout.connection
-      : effectiveTimeout.response;
+    const sdkTimeoutMs = resolveGoogleSdkTimeoutMs(
+      effectiveTimeout,
+      streamEnabled,
+    );
 
     const credentialValue = getToken(credential);
 
     const httpOptions: HttpOptions = {
       baseUrl: this.baseUrl,
       headers: this.buildHeaders(credential, modelConfig),
-      timeout: requestTimeoutMs,
+      ...(sdkTimeoutMs !== undefined ? { timeout: sdkTimeoutMs } : {}),
       extraBody: this.buildExtraBody(modelConfig),
     };
 
