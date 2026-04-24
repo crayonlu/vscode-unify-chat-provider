@@ -1,5 +1,10 @@
 # Changelog
 
+## v6.7.1 - 2026-04-24
+
+### Fixes
+- openai: handle undefined/null reasoning_content properly (ab01200, SmallMain)
+
 ## v6.7.0 - 2026-04-24
 
 ### Features
