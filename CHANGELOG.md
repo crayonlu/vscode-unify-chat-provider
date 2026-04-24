@@ -1,5 +1,10 @@
 # Changelog
 
+## v6.8.0 - 2026-04-24
+
+### Features
+- add GPT-5.5 model support (33aa497, SmallMain)
+
 ## v6.7.1 - 2026-04-24
 
 ### Fixes
