@@ -1437,7 +1437,9 @@ export class OpenAIChatCompletionProvider implements ApiProvider {
             ...(refusal ? { refusal } : {}),
             ...(tool_calls && tool_calls.length > 0 ? { tool_calls } : {}),
             ...(reasoning ? { reasoning } : {}),
-            ...(reasoning_content ? { reasoning_content } : {}),
+            ...(reasoning_content !== undefined
+              ? { reasoning_content }
+              : {}),
             ...(reasoning_details ? { reasoning_details } : {}),
           },
         );
@@ -1546,7 +1548,7 @@ export class OpenAIChatCompletionProvider implements ApiProvider {
         choice.message.content = (choice.message.content || '') + content;
       }
 
-      if (reasoning_content) {
+      if (reasoning_content !== undefined && reasoning_content !== null) {
         choice.message.reasoning_content =
           (choice.message.reasoning_content || '') + reasoning_content;
       }
