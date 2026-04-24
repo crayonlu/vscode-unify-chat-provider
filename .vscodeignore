@@ -13,3 +13,5 @@ AGENTS.md
 .git/**
 icon_large.png
 icon_square.png
+scripts/**
+test.json

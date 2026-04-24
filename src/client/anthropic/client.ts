@@ -74,6 +74,8 @@ type AnthropicThinkingOutputState = {
   lastType?: AnthropicThinkingContentType;
 };
 
+const FALLBACK_THINKING_CONTENT = 'Reasoning content was not preserved.';
+
 export class AnthropicProvider implements ApiProvider {
   private readonly baseUrl: string;
 
@@ -286,6 +288,10 @@ export class AnthropicProvider implements ApiProvider {
       outMessages[index].content = raw.content;
     }
 
+    for (let i = 0; i < outMessages.length; i += 1) {
+      outMessages[i] = this.ensureAssistantThinkingBlock(outMessages[i]);
+    }
+
     // add a cache breakpoint at the end.
     this.applyCacheControl(system, outMessages);
 
@@ -346,6 +352,47 @@ export class AnthropicProvider implements ApiProvider {
     BetaThinkingBlockParam | BetaRedactedThinkingBlockParam
   > {
     return block.type !== 'thinking' && block.type !== 'redacted_thinking';
+  }
+
+  private ensureAssistantThinkingBlock(
+    message: BetaMessageParam,
+  ): BetaMessageParam {
+    if (message.role !== 'assistant') {
+      return message;
+    }
+
+    const content = Array.isArray(message.content)
+      ? [...message.content]
+      : [
+          {
+            type: 'text',
+            text: message.content,
+          } satisfies BetaTextBlockParam,
+        ];
+
+    const hasThinkingBlock = content.some(
+      (block) =>
+        block.type === 'thinking' || block.type === 'redacted_thinking',
+    );
+
+    if (hasThinkingBlock) {
+      return {
+        ...message,
+        content,
+      };
+    }
+
+    return {
+      ...message,
+      content: [
+        {
+          type: 'thinking',
+          thinking: FALLBACK_THINKING_CONTENT,
+          signature: '',
+        } satisfies BetaThinkingBlockParam,
+        ...content,
+      ],
+    };
   }
 
   /**

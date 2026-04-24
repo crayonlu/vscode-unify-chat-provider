@@ -99,6 +99,8 @@ type OpenRouterThinkingOutputState = {
   lastType?: OpenRouterThinkingContentType;
 };
 
+const FALLBACK_REASONING_CONTENT = 'Reasoning content was not preserved.';
+
 export class OpenAIChatCompletionProvider implements ApiProvider {
   protected readonly baseUrl: string;
 
@@ -258,6 +260,10 @@ export class OpenAIChatCompletionProvider implements ApiProvider {
       outMessages[index] = raw;
     }
 
+    for (let i = 0; i < outMessages.length; i += 1) {
+      outMessages[i] = this.ensureAssistantReasoningContent(outMessages[i]);
+    }
+
     // TODO 将连续的不同种类的 Assistant 消息尽量合并为一条消息（比如 content, reasoning_content, tool_calls 可以合并，但是 content, content 则不可以合并，(content and reasoning_content), tool_calls 可以合并）
 
     // add a cache breakpoint at the end.
@@ -319,6 +325,27 @@ export class OpenAIChatCompletionProvider implements ApiProvider {
         lastTextBlock.cache_control = cacheControl;
       }
     }
+  }
+
+  private ensureAssistantReasoningContent(
+    message: ChatCompletionMessageParam,
+  ): ChatCompletionMessageParam {
+    if (message.role !== 'assistant') {
+      return message;
+    }
+
+    if (
+      message.reasoning !== undefined ||
+      message.reasoning_content !== undefined ||
+      (message.reasoning_details?.length ?? 0) > 0
+    ) {
+      return message;
+    }
+
+    return {
+      ...message,
+      reasoning_content: FALLBACK_REASONING_CONTENT,
+    };
   }
 
   convertPart(
@@ -1014,7 +1041,6 @@ export class OpenAIChatCompletionProvider implements ApiProvider {
       this.config.extraBody,
       model.extraBody,
     );
-
     const client = this.createClient(
       logger,
       streamEnabled,
