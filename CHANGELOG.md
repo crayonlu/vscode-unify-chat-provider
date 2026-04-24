@@ -1,5 +1,11 @@
 # Changelog
 
+## v6.7.0 - 2026-04-24
+
+### Features
+- set DeepSeek V4 reasoning effort to max (bf62018, SmallMain)
+- add DeepSeek V4 support with reasoning_effort param (6272955, SmallMain)
+
 ## v6.6.0 - 2026-04-23
 
 ### Breaking Changes
