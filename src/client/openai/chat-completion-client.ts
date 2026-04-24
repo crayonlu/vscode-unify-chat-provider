@@ -76,6 +76,7 @@ import { FeatureId } from '../definitions';
  *
  * - `reasoning`                    — OpenRouter unified `reasoning` object
  * - `thinking`                     — DeepSeek / MiMo / GLM `thinking: { type }` param
+ * - `thinking_with_deepseek_reasoning_effort` — DeepSeek V4 `thinking` + `reasoning_effort`
  * - `thinking_with_reasoning_effort` — VolcEngine `thinking` + `reasoning_effort`
  * - `disable_reasoning`            — Cerebras GLM `disable_reasoning` boolean
  * - `enable_thinking`              — Qwen / SiliconFlow `enable_thinking` boolean
@@ -85,6 +86,7 @@ import { FeatureId } from '../definitions';
 type ReasoningParamType =
   | 'reasoning'
   | 'thinking'
+  | 'thinking_with_deepseek_reasoning_effort'
   | 'thinking_with_reasoning_effort'
   | 'official'
   | 'disable_reasoning'
@@ -569,11 +571,7 @@ export class OpenAIChatCompletionProvider implements ApiProvider {
     type: ReasoningParamType,
   ): Partial<ChatCompletionCreateParamsBase> {
     const thinking = model.thinking;
-
-    const isDisabled =
-      thinking?.type === 'disabled' ||
-      thinking?.effort === 'none' ||
-      (thinking?.budgetTokens !== undefined && thinking.budgetTokens <= 0);
+    const isDisabled = this.isThinkingDisabled(thinking);
 
     switch (type) {
       // OpenRouter — unified `reasoning` object
@@ -606,6 +604,24 @@ export class OpenAIChatCompletionProvider implements ApiProvider {
       case 'thinking': {
         if (!thinking) return {};
         return { thinking: { type: thinking.type } };
+      }
+
+      // DeepSeek V4 — `thinking: { type }` + `reasoning_effort: high|max`
+      // @see https://api-docs.deepseek.com/zh-cn/guides/thinking_mode
+      case 'thinking_with_deepseek_reasoning_effort': {
+        if (!thinking) {
+          return {};
+        }
+        if (isDisabled) {
+          return {
+            thinking: { type: 'disabled' },
+          };
+        }
+        return {
+          thinking: {
+            type: this.normalizeThinkingTypeForDeepSeek(thinking.type),
+          },
+        };
       }
 
       // VolcEngine — `thinking: { type }` + `reasoning_effort`
@@ -677,6 +693,56 @@ export class OpenAIChatCompletionProvider implements ApiProvider {
           };
         return {};
       }
+    }
+  }
+
+  private isThinkingDisabled(
+    thinking: ModelConfig['thinking'] | undefined,
+  ): boolean {
+    return (
+      thinking?.type === 'disabled' ||
+      thinking?.effort === 'none' ||
+      (thinking?.budgetTokens !== undefined && thinking.budgetTokens <= 0)
+    );
+  }
+
+  private buildReasoningExtraBody(
+    model: ModelConfig,
+    type: ReasoningParamType,
+  ): Record<string, unknown> {
+    const thinking = model.thinking;
+    if (type !== 'thinking_with_deepseek_reasoning_effort' || !thinking) {
+      return {};
+    }
+    if (this.isThinkingDisabled(thinking) || thinking.effort == null) {
+      return {};
+    }
+    return {
+      reasoning_effort: this.normalizeReasoningEffortForDeepSeek(
+        thinking.effort,
+      ),
+    };
+  }
+
+  private normalizeThinkingTypeForDeepSeek(
+    type: NonNullable<ModelConfig['thinking']>['type'],
+  ): 'enabled' | 'disabled' {
+    return type === 'disabled' ? 'disabled' : 'enabled';
+  }
+
+  private normalizeReasoningEffortForDeepSeek(
+    effort: NonNullable<NonNullable<ModelConfig['thinking']>['effort']>,
+  ): 'high' | 'max' {
+    switch (effort) {
+      case 'xhigh':
+      case 'max':
+        return 'max';
+      case 'high':
+      case 'medium':
+      case 'low':
+      case 'minimal':
+      default:
+        return 'high';
     }
   }
 
@@ -775,6 +841,11 @@ export class OpenAIChatCompletionProvider implements ApiProvider {
       this.config,
       model,
     );
+    const useDeepSeekReasoningEffortParam = isFeatureSupported(
+      FeatureId.OpenAIUseDeepSeekReasoningEffortParam,
+      this.config,
+      model,
+    );
     const useTopK = isFeatureSupported(
       FeatureId.OpenAIUseTopK,
       this.config,
@@ -840,9 +911,11 @@ export class OpenAIChatCompletionProvider implements ApiProvider {
     if (useReasoningParam) {
       thinkingParamType = 'reasoning';
     } else if (useThinkingParam) {
-      thinkingParamType = useReasoningEffortParam
-        ? 'thinking_with_reasoning_effort'
-        : 'thinking';
+      thinkingParamType = useDeepSeekReasoningEffortParam
+        ? 'thinking_with_deepseek_reasoning_effort'
+        : useReasoningEffortParam
+          ? 'thinking_with_reasoning_effort'
+          : 'thinking';
     } else if (useDisableReasoningParam) {
       thinkingParamType = 'disable_reasoning';
     } else if (useThinkingParam3) {
@@ -884,6 +957,10 @@ export class OpenAIChatCompletionProvider implements ApiProvider {
     const tools = this.convertTools(options.tools, shouldApplyCacheControl);
     const toolChoice = this.convertToolChoice(options.toolMode, tools);
     const streamEnabled = model.stream ?? true;
+    const reasoningExtraBody = this.buildReasoningExtraBody(
+      model,
+      thinkingParamType,
+    );
 
     const headers = this.buildHeaders(credential, model, sanitizedMessages);
     const serviceTier = resolveOpenAIServiceTier(this.config, model);
@@ -931,7 +1008,12 @@ export class OpenAIChatCompletionProvider implements ApiProvider {
       ...(streamEnabled ? { stream_options: { include_usage: true } } : {}),
     };
 
-    Object.assign(baseBody, this.config.extraBody, model.extraBody);
+    Object.assign(
+      baseBody,
+      reasoningExtraBody,
+      this.config.extraBody,
+      model.extraBody,
+    );
 
     const client = this.createClient(
       logger,

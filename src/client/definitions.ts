@@ -194,6 +194,14 @@ export enum FeatureId {
    */
   OpenAIUseReasoningEffortParam = 'openai_use-reasoning-effort-param',
   /**
+   * Use DeepSeek V4 style `reasoning_effort` values (`high` / `max`) together
+   * with the `thinking` parameter in OpenAI-compatible Chat Completion APIs.
+   *
+   * @see https://api-docs.deepseek.com/zh-cn/guides/thinking_mode
+   * @see https://api-docs.deepseek.com/zh-cn/
+   */
+  OpenAIUseDeepSeekReasoningEffortParam = 'openai_use-deepseek-reasoning-effort-param',
+  /**
    * Using both the unofficial `thinking` and the `reasoning` fields in the OpenAI Responses API.
    *
    * @see https://www.volcengine.com/docs/82379/1569618?lang=zh
@@ -497,6 +505,17 @@ export const FEATURES: Record<FeatureId, Feature> = {
     customCheckers: [
       (model, provider) =>
         isBaiduQianfanModel(model, provider, ['gpt-oss-120b', 'gpt-oss-20b']),
+    ],
+  },
+  [FeatureId.OpenAIUseDeepSeekReasoningEffortParam]: {
+    customCheckers: [
+      (model, provider) =>
+        matchProvider(provider.baseUrl, 'api.deepseek.com') &&
+        matchModelFamily(model.family ?? getBaseModelId(model.id), [
+          'deepseek-v4-',
+          'deepseek-chat',
+          'deepseek-reasoner',
+        ]),
     ],
   },
   [FeatureId.OpenAIStripIncludeParam]: {

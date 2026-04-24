@@ -38,6 +38,7 @@ const OPENAI_CODEX_REASONING_EFFORTS = [
   'low',
 ] as const;
 const OPENAI_OSS_REASONING_EFFORTS = ['high', 'medium', 'low'] as const;
+const DEEPSEEK_V4_REASONING_EFFORTS = ['max', 'high', 'none'] as const;
 const ANTHROPIC_OPUS_4_7_REASONING_EFFORTS = [
   'max',
   'xhigh',
@@ -1863,6 +1864,42 @@ const _WELL_KNOWN_MODELS = [
       toolCalling: true,
       imageInput: false,
     },
+  },
+  {
+    id: 'deepseek-v4-flash',
+    name: 'DeepSeek V4 Flash',
+    maxInputTokens: 1000000,
+    maxOutputTokens: 384000,
+    stream: true,
+    tokenizer: 'deepseek',
+    thinking: {
+      type: 'enabled',
+    },
+    capabilities: {
+      toolCalling: true,
+      imageInput: false,
+    },
+    presetTemplates: [
+      openAiReasoningEffort(DEEPSEEK_V4_REASONING_EFFORTS, 'high'),
+    ],
+  },
+  {
+    id: 'deepseek-v4-pro',
+    name: 'DeepSeek V4 Pro',
+    maxInputTokens: 1000000,
+    maxOutputTokens: 384000,
+    stream: true,
+    tokenizer: 'deepseek',
+    thinking: {
+      type: 'enabled',
+    },
+    capabilities: {
+      toolCalling: true,
+      imageInput: false,
+    },
+    presetTemplates: [
+      openAiReasoningEffort(DEEPSEEK_V4_REASONING_EFFORTS, 'high'),
+    ],
   },
   {
     id: 'deepseek-chat',

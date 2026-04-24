@@ -389,7 +389,7 @@ export const WELL_KNOWN_PROVIDERS: WellKnownProviderConfig[] = [
     baseUrl: 'https://api.deepseek.com',
     balanceProvider: { method: 'deepseek' },
     authTypes: ['api-key'],
-    models: ['deepseek-chat', 'deepseek-reasoner'],
+    models: ['deepseek-v4-flash', 'deepseek-v4-pro'],
   },
   {
     name: 'Gitee AI',
