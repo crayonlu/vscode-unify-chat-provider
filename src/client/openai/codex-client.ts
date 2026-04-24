@@ -283,12 +283,10 @@ export class OpenAICodexProvider extends OpenAIResponsesProvider {
     _credential: AuthTokenInfo,
   ): Promise<ModelConfig[]> {
     return [
-      { id: 'gpt-5.1-codex-max', maxOutputTokens: undefined },
-      { id: 'gpt-5.1-codex-mini', maxOutputTokens: undefined },
-      { id: 'gpt-5.2', maxOutputTokens: undefined },
+      { id: 'gpt-5.5', maxOutputTokens: undefined },
       { id: 'gpt-5.4', maxOutputTokens: undefined },
+      { id: 'gpt-5.2', maxOutputTokens: undefined },
       { id: 'gpt-5.4-mini', maxOutputTokens: undefined },
-      { id: 'gpt-5.2-codex', maxOutputTokens: undefined },
       { id: 'gpt-5.3-codex', maxOutputTokens: undefined },
       { id: 'gpt-5.3-codex-spark', maxOutputTokens: undefined },
     ];
