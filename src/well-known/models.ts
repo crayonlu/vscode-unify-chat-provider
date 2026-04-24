@@ -1874,13 +1874,14 @@ const _WELL_KNOWN_MODELS = [
     tokenizer: 'deepseek',
     thinking: {
       type: 'enabled',
+      effort: 'max',
     },
     capabilities: {
       toolCalling: true,
       imageInput: false,
     },
     presetTemplates: [
-      openAiReasoningEffort(DEEPSEEK_V4_REASONING_EFFORTS, 'high'),
+      openAiReasoningEffort(DEEPSEEK_V4_REASONING_EFFORTS, 'max'),
     ],
   },
   {
@@ -1892,13 +1893,14 @@ const _WELL_KNOWN_MODELS = [
     tokenizer: 'deepseek',
     thinking: {
       type: 'enabled',
+      effort: 'max',
     },
     capabilities: {
       toolCalling: true,
       imageInput: false,
     },
     presetTemplates: [
-      openAiReasoningEffort(DEEPSEEK_V4_REASONING_EFFORTS, 'high'),
+      openAiReasoningEffort(DEEPSEEK_V4_REASONING_EFFORTS, 'max'),
     ],
   },
   {
